@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阶段三 · Agent 工程化（教材）</title>
+<style>
+  :root{
+    --paper:#ffffff;--bg:#f4f3f0;--ink:#1d1d1b;--ink-soft:#4a4a46;--ink-faint:#7b7b75;
+    --rule:#dcd9d2;--accent:#2f5d46;--accent-soft:#eaf1ec;
+    --code-bg:#f6f4ef;--out-bg:#eef2ee;--warn-bg:#fbf7ea;--warn-rule:#d8c49a;
+    --analogy-bg:#f2f1ec;--analogy-rule:#9a9483;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:400 16.5px/1.9 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .page{max-width:880px;margin:0 auto;background:var(--paper);padding:40px 28px 80px}
+  @media (max-width:700px){
+    .page{padding:24px 18px 56px}
+    body{font-size:16px;line-height:1.85}
+    .cover-title{font-size:26px;line-height:1.35}
+    table{table-layout:fixed}
+    th,td{word-break:break-word;overflow-wrap:anywhere;padding:8px 6px}
+    h1.ch-title{font-size:23px}
+  }
+  h1,h2,h3,.cover-title,.chapter-no{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:600}
+  a{color:var(--accent);text-decoration:none}
+  .cover{padding-bottom:28px;border-bottom:2px solid var(--rule);margin-bottom:28px}
+  .cover-kicker{font-size:12.5px;letter-spacing:.16em;color:var(--ink-faint);margin:0 0 10px}
+  .cover-title{font-size:33px;line-height:1.3;margin:0 0 10px}
+  .cover-sub{font-size:17px;color:var(--ink-soft);margin:0 0 18px}
+  .cover-meta{font-size:13.5px;color:var(--ink-faint);line-height:1.9}
+  .toc{margin:0 0 40px;padding:18px 18px 6px;background:var(--accent-soft)}
+  .toc h2{font-size:14px;letter-spacing:.12em;color:var(--accent);margin:0 0 12px;font-family:inherit;font-weight:600}
+  .toc ol{margin:0;padding-left:20px}
+  .toc li{margin:0 0 6px;font-size:14.5px;line-height:1.7}
+  .chapter{padding-top:8px;margin-bottom:56px}
+  .chapter-head{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:24px}
+  .chapter-no{font-size:13px;letter-spacing:.18em;color:var(--accent);margin:0 0 6px}
+  h1.ch-title{font-size:27px;line-height:1.4;margin:0 0 10px}
+  .chapter-goal{font-size:15px;color:var(--ink-soft);margin:0}
+  h2{font-size:20px;line-height:1.5;margin:40px 0 12px}
+  h2 .sec-no{color:var(--accent);margin-right:8px}
+  h3{font-size:16.5px;margin:24px 0 6px}
+  p{margin:0 0 14px}
+  .badge{display:inline-block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.1em;padding:4px 8px;border:1px solid var(--rule);color:var(--ink-soft);vertical-align:2px;margin-left:8px}
+  .badge.a{border-color:var(--accent);color:var(--accent)}
+  .badge.b{border-color:#b9b39f;color:#7a7259}
+  .badge.c{border-color:#d3d0c8;color:#8b8880}
+  .code,.out{margin:0 0 16px}
+  .code .label,.out .label{display:block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:6px}
+  pre{margin:0;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;color:#23231f;tab-size:4}
+  .out pre{background:var(--out-bg);border-left-color:#9fb5a6;color:#243a2b}
+  .analogy{padding:14px 16px;border-left:3px solid var(--analogy-rule);background:var(--analogy-bg);margin:0 0 18px;font-size:15.5px}
+  .analogy strong{color:#4b4536}
+  .warn{padding:12px 16px;border:1px solid var(--warn-rule);background:var(--warn-bg);margin:0 0 16px;font-size:15px}
+  .warn strong{color:#6b4e12}
+  .quiz{margin:0 0 16px;padding:14px 16px;border:1px dashed var(--rule);background:#faf9f6;font-size:15px}
+  .quiz p{margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px;line-height:1.7}
+  th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f2f0ea;font-weight:600;font-size:13px;color:var(--ink-soft)}
+  ul.plain{padding-left:20px;margin:0 0 16px}
+  ul.plain li{margin-bottom:6px}
+  .exercise{border:1px solid var(--rule);padding:16px 18px;margin:20px 0 0}
+  .exercise h3{margin-top:0}
+  .answer{font-size:14.5px;color:var(--ink-soft);margin:10px 0 0}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
+  @media print{body{background:#fff;font-size:12pt}.page{padding:0}.chapter{page-break-after:always}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <p class="cover-kicker">阶段三 · Agent 工程化</p>
+  <h1 class="cover-title">把那个三十行的 Agent，做成能交付的东西</h1>
+  <p class="cover-sub">阶段二给了你零件，这一阶段把它们装成一台能运转、能排查、能评测的机器。</p>
+  <p class="cover-meta">
+    工作目录沿用 <code>stage2-ml-llm</code>，不需要新环境<br>
+    运行：<code>.\.venv\Scripts\python.exe 脚本名.py</code><br>
+    多了一个 <code>config.json</code>，所有可调参数都放进去
+  </p>
+</header>
+
+<nav class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#ch0">第 0 章 从脚本到工程：配置、日志、入口</a></li>
+    <li><a href="#ch1">第 1 章 工具层：签名、校验、重试</a></li>
+    <li><a href="#ch2">第 2 章 接模型：messages 协议与用量</a></li>
+    <li><a href="#ch3">第 3 章 记忆：把对话存进数据库</a></li>
+    <li><a href="#ch4">第 4 章 检索：先找资料再回答</a></li>
+    <li><a href="#ch5">第 5 章 循环控制：上限与重复检测</a></li>
+    <li><a href="#ch6">第 6 章 评测：通过率与失败清单</a></li>
+    <li><a href="#ch7">第 7 章 交付：一条命令跑完</a></li>
+    <li><a href="#appendix">附录：工程检查表、术语、下一步</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section class="chapter" id="ch0">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 0</p>
+    <h1 class="ch-title">从脚本到工程：配置、日志、入口</h1>
+    <p class="chapter-goal">学完能做出：一个带配置文件、会写日志、有明确入口的程序骨架。</p>
+  </div>
+
+  <p>阶段二的代码，参数都写死在函数里。改个城市要改代码，出了错没有任何记录。这一章先解决这两件事。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>开一家小店，三样东西缺一不可：<strong>菜单</strong>（客人能选什么，你不用每次口头解释）、<strong>账本</strong>（谁来过、点了什么、出了什么问题）、<strong>店门</strong>（客人从哪进来）。<br>
+    配置文件是菜单，日志是账本，入口脚本是店门。没有它们，那不叫店，叫你自己在家做饭。
+  </div>
+
+  <h2><span class="sec-no">0.1</span>菜单：config.json <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">config.json</span><pre>{
+  "city": "常州",
+  "max_steps": 5,
+  "retry_limit": 2,
+  "model_url": "http://127.0.0.1:18090/chat"
+}</pre></div>
+  <p>四个值都是“会变但不想改代码”的东西。改城市、改步数上限、换模型地址，只动这一个文件。</p>
+
+  <h2><span class="sec-no">0.2</span>账本：日志 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">config_and_log.py</span><pre>import json, logging
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[logging.FileHandler(ROOT / "agent.log", encoding="utf-8")],
+)
+log = logging.getLogger("agent")
+
+log.info("启动，城市=%s，最多 %d 步", CONFIG["city"], CONFIG["max_steps"])
+print("配置：", CONFIG)</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>配置： {'city': '常州', 'max_steps': 5, 'retry_limit': 2, 'model_url': 'http://127.0.0.1:18090/chat'}
+2026-11-06 10:22:34,185 INFO 启动，城市=常州，最多 5 步</pre></div>
+  <p>日志和 <code>print</code> 的区别：<code>print</code> 给人看，日志给“出问题时的你”看。它带时间、带级别，还能只写进文件不刷屏。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>配置</td><td>会变的值，放在代码外面</td></tr>
+    <tr><td>日志级别</td><td>INFO 正常、WARNING 要留意、ERROR 出问题了</td></tr>
+    <tr><td><code>%s</code> / <code>%d</code></td><td>占位符：字符串、整数，日志模块替你填</td></tr>
+    <tr><td><code>Path(__file__).parent</code></td><td>脚本自己所在的目录，不受启动位置影响</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>配置文件用相对路径 <code>"config.json"</code>，从别的目录启动就找不到；日志文件不写 <code>encoding="utf-8"</code>，中文会乱码。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 哪些值应该放进配置文件？</p>
+    <p>2. 已经有 <code>print</code> 了，为什么还要日志？</p>
+    <p>3. 为什么用 <code>Path(__file__).parent</code> 拼配置路径？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 1</p>
+    <h1 class="ch-title">工具层：签名、校验、重试</h1>
+    <p class="chapter-goal">学完能做出：一个失败会自动重试、失败两次就如实报错的工具调用层。</p>
+  </div>
+
+  <p>真实工具会超时、会返回奇怪的参数、会突然挂掉。工具层就是给这些意外加一层缓冲。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>插头要有统一的规格（参数校验），不然插不进去；<strong>跳闸了要能自动合闸</strong>（重试），合两次还跳，就得停电检修（报错），不能一直合闸把线路烧了。
+  </div>
+
+  <h2><span class="sec-no">1.1</span>先看失败长什么样 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">tools.py</span><pre>CALLS = {"n": 0}
+
+def flaky_weather(args):
+    CALLS["n"] += 1
+    if CALLS["n"] &lt; 3:
+        raise TimeoutError("weather service timeout")
+    return {"city": args["city"], "rain": True}</pre></div>
+  <p>这个工具前两次必失败，第三次成功。用它才能验证重试是真的有用。</p>
+
+  <h2><span class="sec-no">1.2</span>重试不是循环重发 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">tools.py（调用层）</span><pre>def call_tool(name, args, retry_limit=2):
+    for attempt in range(1, retry_limit + 2):      # 首次 + 2 次重试
+        try:
+            result = TOOLS[name](args)
+            return {"ok": True, "result": result, "attempts": attempt}
+        except Exception as error:
+            print(f"  第 {attempt} 次失败：{type(error).__name__}: {error}")
+            if attempt &gt; retry_limit:
+                return {"ok": False, "error": str(error), "attempts": attempt}</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>  第 1 次失败：TimeoutError: weather service timeout
+  第 2 次失败：TimeoutError: weather service timeout
+{'ok': True, 'result': {'city': '常州', 'rain': True}, 'attempts': 3}</pre></div>
+  <p>三个要点：返回值永远是一个字典（成功失败结构一致）；记下第几次才成功；超过上限就停下，不无限重试。</p>
+
+  <h2><span class="sec-no">1.3</span>参数校验放在工具入口 <span class="badge b">B</span></h2>
+  <p>模型可能传错东西：把城市传成数字、少传字段。校验放在工具内部，用一句明确的话拒绝，比在后面崩掉好排查。</p>
+  <div class="code"><span class="label">tools.py（校验）</span><pre>def get_weather(args):
+    city = args.get("city")
+    if not isinstance(city, str) or not city:
+        raise ValueError("city 必须是非空字符串")
+    return {"city": city, "rain": True}</pre></div>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>重试次数</td><td>“再多试几次”，不含第一次</td></tr>
+    <tr><td>幂等</td><td>同一个请求做两遍，结果一样；只有幂等的工具才适合自动重试</td></tr>
+    <tr><td>返回值统一</td><td>成功失败都是字典，调用方不用猜</td></tr>
+    <tr><td>校验</td><td>进门先查证件，别等用到一半才崩</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>把“发消息”“下单”这类工具自动重试，可能发两遍；重试之间没有等待，对方可能还没恢复。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. <code>retry_limit=2</code> 一共会尝试几次？</p>
+    <p>2. 为什么工具返回要统一成字典？</p>
+    <p>3. 哪些工具不能自动重试？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 2</p>
+    <h1 class="ch-title">接模型：messages 协议与用量</h1>
+    <p class="chapter-goal">学完能做出：用主流消息格式调用模型，并读出这次花了多少 token。</p>
+  </div>
+
+  <p>阶段二用的是自定义的 <code>{"prompt": ...}</code>。真实接口不是这样，它要一串“谁说了什么”。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>你跟客服聊天，系统会显示“客服：您好”“你：我想退货”“客服：请提供订单号”。<br>
+    <strong>模型收到的也是这种带角色的对话记录</strong>，不是一句孤立的问题。角色只有三种：system（规定它怎么说话）、user（你说的）、assistant（它说的）。
+  </div>
+
+  <h2><span class="sec-no">2.1</span>请求体长什么样 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">client.py</span><pre>messages = [
+    {"role": "system", "content": "你是学习教练，回答简短。"},
+    {"role": "user", "content": "我每天学习时长多少合适？"},
+]
+payload = {"model": "mock", "messages": messages}</pre></div>
+  <p>三件事和阶段二不同：多了 <code>model</code> 字段；问题包在 <code>messages</code> 里；多了一个 <code>system</code> 角色来定风格。</p>
+
+  <h2><span class="sec-no">2.2</span>响应与用量 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">client.py（解析）</span><pre>payload = json.loads(response.read())
+reply = payload["choices"][0]["message"]["content"]
+usage = payload["usage"]
+print("回复：", reply)
+print("用量：", usage)</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>回复： 建议每天 40 分钟。
+用量： {'prompt_tokens': 18, 'completion_tokens': 9}</pre></div>
+  <p><code>prompt_tokens</code> 是你送进去的长度，<code>completion_tokens</code> 是它写出来的长度。两者都计费，所以长 system 提示、长对话历史都会让成本上涨。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>messages</td><td>带角色的对话记录，模型按顺序读</td></tr>
+    <tr><td>role</td><td>system 定规矩、user 提问题、assistant 是模型的话</td></tr>
+    <tr><td><code>choices[0]</code></td><td>通常只有一个候选回答，取第一个</td></tr>
+    <tr><td>usage</td><td>这次调用的 token 用量</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>把历史对话全塞进去，token 会越滚越大；<code>system</code> 写成一大段规则，每次调用都要重复付钱。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 三种 role 各自负责什么？</p>
+    <p>2. 为什么长对话会让成本上升？</p>
+    <p>3. 从响应里取回答，为什么要经过 <code>choices[0].message.content</code>？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 3</p>
+    <h1 class="ch-title">记忆：把对话存进数据库</h1>
+    <p class="chapter-goal">学完能做出：把每一轮对话写进 SQLite，程序重启后还能接着聊。</p>
+  </div>
+
+  <p>Agent 要有“上次说到哪”的能力。变量只活到程序结束，数据库能活到下次启动。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>看病时的病历本。医生不会每次都问一遍“你对什么过敏”，他翻本子。<br>
+    <strong>对话表就是病历本</strong>：一行一句，带角色和时间，下次接着往后写。
+  </div>
+
+  <h2><span class="sec-no">3.1</span>建表并写入 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">memory.py</span><pre>import sqlite3
+from pathlib import Path
+
+db_path = Path("memory.db")
+db_path.unlink(missing_ok=True)
+db = sqlite3.connect(db_path)
+db.execute("""CREATE TABLE messages (
+    id INTEGER PRIMARY KEY,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)""")
+
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "我每天该学多久？"))
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("assistant", "建议每天 40 分钟。"))
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "那算法练多久？"))
+db.commit()</pre></div>
+  <p>每一行是一条消息，顺序靠 <code>id</code>。下次要接着聊，就读出来拼成 <code>messages</code> 列表再发给模型。</p>
+
+  <h2><span class="sec-no">3.2</span>读回来 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">memory.py（读取）</span><pre>rows = db.execute("SELECT id, role, content FROM messages ORDER BY id").fetchall()
+for row in rows:
+    print(row)
+print("条数：", len(rows))</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>(1, 'user', '我每天该学多久？')
+(2, 'assistant', '建议每天 40 分钟。')
+(3, 'user', '那算法练多久？')
+条数： 3</pre></div>
+
+  <h2><span class="sec-no">3.3</span>别让病历本无限变厚 <span class="badge b">B</span></h2>
+  <p>历史越长，token 越贵。做法：只取最近 N 轮；或者把更早的对话压成一段摘要再带上。两种都要在配置文件里写明 N 是多少。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>会话记忆</td><td>按顺序存下来的对话</td></tr>
+    <tr><td><code>ORDER BY id</code></td><td>按写入顺序读，保证对话不倒叙</td></tr>
+    <tr><td>窗口</td><td>只带最近几条，控制长度和成本</td></tr>
+    <tr><td>摘要</td><td>把旧对话压成一句，代替原文</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>只存不读，等于没记忆；把全部历史每次都发一遍，账单会随对话长度线性上涨。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么记忆不能放普通变量？</p>
+    <p>2. <code>ORDER BY id</code> 少了会怎样？</p>
+    <p>3. 历史太长有哪两种处理办法？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 4</p>
+    <h1 class="ch-title">检索：先找资料再回答</h1>
+    <p class="chapter-goal">学完能做出：从本地笔记里找出最相关的三条，拼进提示再交给模型。</p>
+  </div>
+
+  <p>模型不知道你自己的笔记。硬把它塞进 prompt 又太长，所以先检索，再回答。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>考试允许带书。聪明人不会把整本书摊开，而是<strong>先按目录找到那一页</strong>，再照着回答。<br>
+    检索就是“按目录找页”：把每条笔记变成一串数，把问题也变成一串数，谁的数字最接近就翻哪一页。
+  </div>
+
+  <h2><span class="sec-no">4.1</span>把笔记变成向量 <span class="badge a">A</span></h2>
+  <p>这里用最笨但看得懂的办法：数关键词出现了几次。真实系统用模型给的向量，原理一样。</p>
+  <div class="code"><span class="label">retrieval.py</span><pre>KEYWORDS = ["算法", "结构", "线程", "文件", "数据库", "Agent", "模型", "日志", "上限", "重试"]
+
+NOTES = [
+    "二分查找每次砍掉一半，属于算法。",
+    "哈希表用空间换时间，属于数据结构。",
+    "线程共享数据要加锁，否则会丢更新。",
+    "文件读写要指定编码，路径要用脚本位置。",
+    "SQL 参数化能防注入，事务保证要么全成要么全回滚。",
+    "Agent 要有步数上限和日志，模型调用要处理超时。",
+    "循环没有上限会一直调用模型，必须设最大步数。",
+    "工具失败就重试一次，两次都失败就记 error。",
+]
+
+def vector(text):
+    return [text.count(word) for word in KEYWORDS]</pre></div>
+
+  <h2><span class="sec-no">4.2</span>谁最接近 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">retrieval.py（排序）</span><pre>query = "Agent 为什么要设步数上限？"
+qv = vector(query)
+scores = [(cosine(qv, vector(note)), note) for note in NOTES]
+scores.sort(reverse=True)
+for score, note in scores[:3]:
+    print(f"{score:.3f}  {note}")</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>0.707  Agent 要有步数上限和日志，模型调用要处理超时。
+0.500  循环没有上限会一直调用模型，必须设最大步数。
+0.000  线程共享数据要加锁，否则会丢更新。</pre></div>
+  <p>第一名和第二名都和“上限”有关，第三名完全无关（得分 0）。取前两名就够了，把整本笔记塞进去既贵又吵。</p>
+
+  <h2><span class="sec-no">4.3</span>拼进提示 <span class="badge b">B</span></h2>
+  <div class="code"><span class="label">retrieval.py（拼接）</span><pre>context = "\n".join(note for score, note in scores[:2] if score &gt; 0)
+prompt = f"只根据下面的资料回答：\n{context}\n\n问题：{query}"</pre></div>
+  <p>“只根据下面的资料回答”这句很关键，否则模型会用自己的知识补充，你就没法判断答案是从笔记来的还是编的。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>检索</td><td>先从自己的资料里找相关段落</td></tr>
+    <tr><td>向量化</td><td>把文字变成一串能比较的数</td></tr>
+    <tr><td>Top-K</td><td>只取最相关的 K 条</td></tr>
+    <tr><td>上下文</td><td>拼进提示的那几段资料</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>把得分 0 的笔记也拼进去，等于给模型添乱；不写“只根据资料回答”，模型会自由发挥，答案无法追溯。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么不能把所有笔记直接拼进提示？</p>
+    <p>2. 得分 0 代表什么？</p>
+    <p>3. “只根据下面的资料回答”这句话防的是什么？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 5</p>
+    <h1 class="ch-title">循环控制：上限与重复检测</h1>
+    <p class="chapter-goal">学完能做出：一个会自己停下的循环，卡住时能识别并退出。</p>
+  </div>
+
+  <p>阶段二的循环只有步数上限。真实情况更糟：工具一直失败，模型就会一直重试同一个动作，五步全浪费。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>遛狗要牵绳。绳子长度是<strong>最大步数</strong>；狗原地转圈时，你得把它拽回来——这就是<strong>重复检测</strong>。<br>
+    没有绳子，它能跑到明天；没有重复检测，它能在原地转到你破产。
+  </div>
+
+  <h2><span class="sec-no">5.1</span>先看卡住的样子 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">loop.py</span><pre>def get_weather(args):
+    return {"ok": False, "error": "service timeout"}
+
+def decide(state, history):
+    if state["rain"] is None:
+        return "get_weather", {"city": "常州"}
+    return "finish", {}
+
+state = {"rain": None}
+history = []
+for step in range(1, 6):
+    action, args = decide(state, history)
+    if action == "finish":
+        print(f"[{step}] 结束")
+        break
+    if history.count(action) &gt;= 2:
+        print(f"[{step}] 检测到动作 {action} 重复两次，停止")
+        break
+    result = get_weather(args)
+    history.append(action)
+    print(f"[{step}] {action} → {result}")</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>[1] get_weather → {'ok': False, 'error': 'service timeout'}
+[2] get_weather → {'ok': False, 'error': 'service timeout'}
+[3] 检测到动作 get_weather 重复两次，停止</pre></div>
+  <p>第三轮本来还会再调一次。重复检测在它动手之前就拦住了，省下后面两步和对应的 token。</p>
+
+  <h2><span class="sec-no">5.2</span>三层刹车 <span class="badge a">A</span></h2>
+  <table>
+    <tr><th>刹车</th><th>什么时候用</th><th>触发后做什么</th></tr>
+    <tr><td>最大步数</td><td>永远开着</td><td>直接停，返回“未完成”</td></tr>
+    <tr><td>重复检测</td><td>同一个动作连续两次</td><td>停，并说明卡在哪</td></tr>
+    <tr><td>超时预算</td><td>对外部接口</td><td>单次调用就别等太久</td></tr>
+  </table>
+  <p>三种都要有。只有最大步数，会白白烧掉五步；只有重复检测，遇到“每次换个工具但都不成功”还是停不下来。</p>
+
+  <div class="warn"><strong>两个坑。</strong>重复检测看“动作名”，如果参数每次都变（比如时间戳），就检测不到；停下时要说清原因，否则你以为是任务完成了。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 最大步数和重复检测各防什么？</p>
+    <p>2. 为什么停下时要带原因？</p>
+    <p>3. 什么情况下重复检测会失灵？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 6</p>
+    <h1 class="ch-title">评测：通过率与失败清单</h1>
+    <p class="chapter-goal">学完能做出：一套固定的 Agent 测试，报出通过率和每一条失败原因。</p>
+  </div>
+
+  <p>改一处代码，你不知道有没有弄坏别的。没有评测，只能靠手点，点三次就烦了。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>体检。项目固定（血压、血糖、心电图），每次结果能对比；<br>
+    如果每次体检项目都不一样，你无法判断“这次是好还是坏”。<strong>评测就是给 Agent 做体检</strong>。
+  </div>
+
+  <h2><span class="sec-no">6.1</span>卷子 <span class="badge b">B</span></h2>
+  <div class="code"><span class="label">evaluate.py</span><pre>CASES = [
+    ("明天要带伞吗？", "带伞"),
+    ("我每天学多久？", "40 分钟"),
+    ("算法怎么练？", "先做题"),
+    ("怎么复习？", "错题"),
+    ("数据存在哪？", "SQLite"),
+    ("为什么要日志？", "排查"),
+    ("Agent 要限制什么？", "步数"),
+    ("接口超时怎么办？", "重试"),
+]
+
+for goal, must in CASES:
+    reply = run_agent(goal)
+    if must in reply:
+        passed += 1
+    else:
+        failed.append((goal, must, reply))</pre></div>
+
+  <h2><span class="sec-no">6.2</span>分数和失败清单 <span class="badge b">B</span></h2>
+  <div class="out"><span class="label">实际输出</span><pre>通过 7/8，通过率 88%
+未通过：接口超时怎么办？ → 期望“重试”，实际“等一会儿再问一次。”</pre></div>
+  <p>那条“失败”不是答错，是评分标准太窄：回答表达的是重试，但没出现“重试”两个字。所以失败清单要先人工看一眼，再决定改代码还是改卷子。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>测试集</td><td>固定的一批输入和预期</td></tr>
+    <tr><td>通过率</td><td>答对比例，用来比较版本</td></tr>
+    <tr><td>回归</td><td>改 A 修好了，B 反而坏了</td></tr>
+    <tr><td>评分标准</td><td>怎么算“对”：关键词、完全匹配、人工判定</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>只报通过率不报失败原因，你不知道该改哪；评分标准太严，正确回答也会被判错。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么测试集要固定？</p>
+    <p>2. 通过率下降一定是代码变差吗？</p>
+    <p>3. 失败清单里最该看的是什么？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch7">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 7</p>
+    <h1 class="ch-title">交付：一条命令跑完</h1>
+    <p class="chapter-goal">学完能做出：<code>python agent.py --goal "..."</code> 一条命令跑出结果，并把过程写进日志。</p>
+  </div>
+
+  <p>前面七章都是零件。这一章把它们装进一个入口，让使用者只需要记住一条命令。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>餐厅后厨可以很复杂，但客人只需要“点菜”一个动作。<br>
+    入口脚本就是出餐口：参数从菜单来，过程在后厨，端出来的只有结果和一张小票（日志）。
+  </div>
+
+  <h2><span class="sec-no">7.1</span>接参数 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">agent.py（节选：只列入口部分）</span><pre>import argparse, json, logging
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+logging.basicConfig(filename=ROOT / "agent.log", level=logging.INFO,
+                    format="%(asctime)s %(levelname)s %(message)s", encoding="utf-8")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--goal", default="明天要不要带伞")
+args = parser.parse_args()
+print("目标：", args.goal)
+print("答案：", run(args.goal))</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>目标： 明天要不要带伞
+[1] get_weather → {'city': '常州', 'rain': True}
+[2] 结论：带伞
+答案： 带伞</pre></div>
+
+  <h2><span class="sec-no">7.2</span>交付前检查表 <span class="badge a">A</span></h2>
+  <table>
+    <tr><th>项</th><th>过了的标志</th></tr>
+    <tr><td>一条命令能跑</td><td>不带参数也有默认目标，报错时给用法</td></tr>
+    <tr><td>参数在配置里</td><td>换城市、换地址不用改代码</td></tr>
+    <tr><td>日志落盘</td><td><code>agent.log</code> 能看到每一步</td></tr>
+    <tr><td>失败有交代</td><td>工具挂了会重试，再失败就明确报错</td></tr>
+    <tr><td>评测可复跑</td><td><code>evaluate.py</code> 结果稳定，能对比版本</td></tr>
+    <tr><td>说明书</td><td>README 里两条命令能跑通</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>只在你的机器上能跑（路径写死、依赖没写进 requirements）；把 <code>agent.log</code> 和 <code>agent.db</code> 提交进仓库，越跑越大。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 入口脚本最低限度要支持什么？</p>
+    <p>2. 为什么日志要落盘而不是只打印？</p>
+    <p>3. 交付检查表里哪一项最容易被跳过？</p>
+  </div>
+</section>
+
+<section class="chapter" id="appendix">
+  <div class="chapter-head">
+    <p class="chapter-no">Appendix</p>
+    <h1 class="ch-title">附录：工程检查表、术语、下一步</h1>
+  </div>
+
+  <h2><span class="sec-no">A.1</span>工程检查表</h2>
+  <ul class="plain">
+    <li>可调参数全部在 <code>config.json</code>，代码里没有魔法数字。</li>
+    <li>每一步都有日志，日志带时间和步骤号。</li>
+    <li>工具返回值统一成字典，成功失败结构一致。</li>
+    <li>外部调用有重试上限，且只重试幂等操作。</li>
+    <li>循环有最大步数、重复检测、超时预算。</li>
+    <li>对话历史落库，且有长度上限。</li>
+    <li>评测集固定，结果可复跑，失败原因写清楚。</li>
+    <li>一条命令能跑，README 两条命令能复现。</li>
+  </ul>
+
+  <h2><span class="sec-no">A.2</span>术语表</h2>
+  <table>
+    <tr><th>词</th><th>一句话</th></tr>
+    <tr><td>配置外置</td><td>会变的值不写在代码里</td></tr>
+    <tr><td>结构化日志</td><td>带时间、级别、步骤号的记录</td></tr>
+    <tr><td>幂等</td><td>同一个请求做两遍，结果一样</td></tr>
+    <tr><td>重试上限</td><td>失败最多再试几次，超过就报错</td></tr>
+    <tr><td>上下文窗口</td><td>这次送给模型的历史和资料总量</td></tr>
+    <tr><td>RAG</td><td>先检索自己的资料，再让模型回答</td></tr>
+    <tr><td>重复检测</td><td>同一动作连续出现就停</td></tr>
+    <tr><td>回归测试</td><td>改完一处，确认别处没坏</td></tr>
+    <tr><td>可复现</td><td>别人按说明书能跑出同样结果</td></tr>
+  </table>
+
+  <h2><span class="sec-no">A.3</span>下一步</h2>
+  <p>八章都跑通之后，把它们并成一个仓库：<code>agent.py</code> 是入口，<code>tools.py</code>、<code>retrieval.py</code>、<code>memory.py</code>、<code>evaluate.py</code> 是模块，<code>config.json</code> 在根目录，<code>README.md</code> 写两条命令。</p>
+  <p>这时候它已经是一个能给别人看的东西了：有入口、有日志、有记忆、有检索、有评测、有说明书。后面要加新工具，只是往 <code>tools.py</code> 里加一个函数、在配置里加一行。</p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>阶段三教材 · 所有数字来自本机实际运行输出</p>
+</footer>
+</div>
+</body>
+</html>
