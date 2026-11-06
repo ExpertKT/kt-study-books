@@ -71,7 +71,7 @@
   .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
   @media print{body{background:#fff;font-size:12pt}.page{box-shadow:none;max-width:none;padding:0}.chapter{page-break-after:always}pre{white-space:pre-wrap}}
 </style>
-</head>
+<style>pre.mermaid{margin:0 0 16px;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,monospace;color:#23231f}</style></head>
 <body>
 <div class="page">
 
@@ -663,7 +663,59 @@ print("日志：", db.execute("SELECT step, action FROM steps").fetchall())</pre
 日志： [(1, 'get_weather'), (2, 'plan_trip')]</pre></div>
   <p>关键在 <code>state</code>：它记住“天气查过没有、建议给过没有”。没有状态，循环就会一直重复查天气，永远停不下来。</p>
 
-  <h2><span class="sec-no">6.3</span>为什么一定要日志 <span class="badge b">B</span></h2>
+  <pre class="mermaid">
+flowchart TD
+    A["开始：目标"] --> B["看状态：还缺什么"]
+    B --> C{"有下一步？"}
+    C -->|"有"| D["调工具，拿到结果"]
+    D --> E["把结果写进状态"]
+    E --> B
+    C -->|"没有"| F["输出答案"]
+    B --> G{"超过最大步数？"}
+    G -->|"是"| H["停止，报告未完成"]
+  </pre>
+  <p>看图要点：循环的出口有两个——事情办完，或者步数用尽。</p>
+
+  <h2><span class="sec-no">6.3</span>模型真的会选工具 <span class="badge a">A</span></h2>
+  <p>6.2 里的 <code>decide()</code> 是写死的规则。真实协议里，是<strong>模型</strong>返回一个工具调用，你的程序解析、执行、再把结果喂回去。</p>
+  <div class="code"><span class="label">tool_call_demo.py</span><pre>def model(messages):
+    if len(messages) == 1:
+        return {"tool_call": {"name": "get_weather", "arguments": {"city": "常州"}}}
+    return {"content": "明天常州有雨，带伞。"}
+
+messages = [{"role": "user", "content": "明天要不要带伞？"}]
+for step in range(1, 4):
+    reply = model(messages)
+    if "tool_call" in reply:
+        call = reply["tool_call"]
+        print(f"[{step}] 模型要求调用 {call['name']}(...)")
+        result = TOOLS[call["name"]](call["arguments"])
+        messages.append({"role": "assistant", "content": json.dumps(reply, ensure_ascii=False)})
+        messages.append({"role": "tool", "name": call["name"], "content": json.dumps(result, ensure_ascii=False)})
+    else:
+        print(f"[{step}] 模型最终回答：{reply['content']}")
+        break</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>[1] 模型要求调用 get_weather({"city": "常州"})
+[2] 模型最终回答：明天常州有雨，带伞。</pre></div>
+  <p>和 6.2 的区别：动作不是代码里判定的，而是模型返回的；程序只负责执行和白名单校验。接真实接口时，这个结构对应 <code>tool_calls</code> 字段，流程一模一样。</p>
+
+  <table>
+    <tr><th>角色</th><th>消息内容</th></tr>
+    <tr><td>user</td><td>问题</td></tr>
+    <tr><td>assistant</td><td>要求调用某个工具，带参数</td></tr>
+    <tr><td>tool</td><td>工具的真实返回值，按名字对应</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>把模型给的工具名直接当函数名调用，等于把门钥匙交给它；工具结果不写回消息列表，模型下一轮就“忘了自己查过什么”。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 6.2 和 6.3 的动作分别由谁决定？</p>
+    <p>2. 工具结果以哪种 role 写回？</p>
+    <p>3. 为什么工具名必须过白名单？</p>
+  </div>
+
+  <h2><span class="sec-no">6.4</span>为什么一定要日志 <span class="badge b">B</span></h2>
   <p>Agent 出错时，你看到的只是“答得不对”。要知道哪一步开始错，只能靠日志：调了哪个工具、参数是什么、回了什么、第几步。写进 sqlite，事后能查。</p>
   <div class="code"><span class="label">agent.py（日志）</span><pre>import sqlite3
 db = sqlite3.connect(":memory:")
@@ -806,5 +858,5 @@ $env:PYTHONUTF8='1'
   <p>阶段二教材 · 所有数字来自本机实际运行输出</p>
 </footer>
 </div>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script></body>
 </html>
