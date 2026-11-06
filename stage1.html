@@ -116,7 +116,7 @@
     pre{white-space:pre-wrap}
   }
 </style>
-</head>
+<style>pre.mermaid{margin:0 0 16px;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,monospace;color:#23231f}</style></head>
 <body>
 <div class="page">
 
@@ -752,6 +752,16 @@ print(number, list_tasks(connection))</pre></div>
   </table>
   <p><code>with connection:</code> 是事务开关：块里全部成功就提交，中途抛异常就回滚。</p>
 
+  <pre class="mermaid">
+flowchart TD
+    S["事务开始"] --> A["INSERT A 成功"]
+    A --> B["INSERT B 写错列"]
+    B --> C{"整组成功？"}
+    C -->|"是"| D["commit：两条都在"]
+    C -->|"抛异常"| E["rollback：A 也撤销"]
+  </pre>
+  <p>看图要点：两条插入是同一组，没有“只成功一条”的出口。</p>
+
   <h2><span class="sec-no">5.2</span>参数化：别把用户文字拼进 SQL <span class="badge a">A</span></h2>
   <p>待办内容带单引号时，拼接会直接把 SQL 弄坏。</p>
   <table>
@@ -949,5 +959,5 @@ python test_&lt;模块&gt;.py; "exit=$LASTEXITCODE"</pre></div>
   <p>阶段一教材 · 生成于本地工作区 · 所有数字来自实际运行输出</p>
 </footer>
 </div>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script></body>
 </html>
