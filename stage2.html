@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阶段二 · 机器学习与 LLM 应用（教材）</title>
+<style>
+  :root{
+    --paper:#ffffff;--bg:#f4f3f0;--ink:#1d1d1b;--ink-soft:#4a4a46;--ink-faint:#7b7b75;
+    --rule:#dcd9d2;--accent:#2f5d46;--accent-soft:#eaf1ec;
+    --code-bg:#f6f4ef;--out-bg:#eef2ee;--warn-bg:#fbf7ea;--warn-rule:#d8c49a;
+    --analogy-bg:#f2f1ec;--analogy-rule:#9a9483;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:400 16.5px/1.9 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .page{max-width:880px;margin:0 auto;background:var(--paper);padding:40px 28px 80px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+  @media (max-width:700px){
+    .page{padding:24px 18px 56px;box-shadow:none}
+    body{font-size:16px;line-height:1.85}
+    .cover-title{font-size:26px;line-height:1.35}
+    table{table-layout:fixed}
+    th,td{word-break:break-word;overflow-wrap:anywhere;padding:8px 6px}
+    h1.ch-title{font-size:23px}
+  }
+  h1,h2,h3,.cover-title,.chapter-no{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:600}
+  a{color:var(--accent);text-decoration:none}
+  .cover{padding-bottom:28px;border-bottom:2px solid var(--rule);margin-bottom:28px}
+  .cover-kicker{font-size:12.5px;letter-spacing:.16em;color:var(--ink-faint);margin:0 0 10px}
+  .cover-title{font-size:33px;line-height:1.3;margin:0 0 10px}
+  .cover-sub{font-size:17px;color:var(--ink-soft);margin:0 0 18px}
+  .cover-meta{font-size:13.5px;color:var(--ink-faint);line-height:1.9}
+  .toc{margin:0 0 40px;padding:18px 18px 6px;background:var(--accent-soft)}
+  .toc h2{font-size:14px;letter-spacing:.12em;color:var(--accent);margin:0 0 12px;font-family:inherit;font-weight:600}
+  .toc ol{margin:0;padding-left:20px}
+  .toc li{margin:0 0 6px;font-size:14.5px;line-height:1.7}
+  .chapter{padding-top:8px;margin-bottom:56px}
+  .chapter-head{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:24px}
+  .chapter-no{font-size:13px;letter-spacing:.18em;color:var(--accent);margin:0 0 6px}
+  h1.ch-title{font-size:27px;line-height:1.4;margin:0 0 10px}
+  .chapter-goal{font-size:15px;color:var(--ink-soft);margin:0}
+  h2{font-size:20px;line-height:1.5;margin:40px 0 12px}
+  h2 .sec-no{color:var(--accent);margin-right:8px}
+  h3{font-size:16.5px;margin:24px 0 6px}
+  p{margin:0 0 14px}
+  .badge{display:inline-block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.1em;padding:4px 8px;border:1px solid var(--rule);color:var(--ink-soft);vertical-align:2px;margin-left:8px}
+  .badge.a{border-color:var(--accent);color:var(--accent)}
+  .badge.b{border-color:#b9b39f;color:#7a7259}
+  .badge.c{border-color:#d3d0c8;color:#8b8880}
+  .code,.out{margin:0 0 16px}
+  .code .label,.out .label{display:block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:6px}
+  pre{margin:0;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;color:#23231f;tab-size:4}
+  .out pre{background:var(--out-bg);border-left-color:#9fb5a6;color:#243a2b}
+  .analogy{padding:14px 16px;border-left:3px solid var(--analogy-rule);background:var(--analogy-bg);margin:0 0 18px;font-size:15.5px}
+  .analogy strong{color:#4b4536}
+  .note{padding:12px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);margin:0 0 16px;font-size:15px}
+  .warn{padding:12px 16px;border:1px solid var(--warn-rule);background:var(--warn-bg);margin:0 0 16px;font-size:15px}
+  .warn strong{color:#6b4e12}
+  .quiz{margin:0 0 16px;padding:14px 16px;border:1px dashed var(--rule);background:#faf9f6;font-size:15px}
+  .quiz p{margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px;line-height:1.7}
+  th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f2f0ea;font-weight:600;font-size:13px;color:var(--ink-soft)}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  ul.plain{padding-left:20px;margin:0 0 16px}
+  ul.plain li{margin-bottom:6px}
+  .exercise{border:1px solid var(--rule);padding:16px 18px;margin:20px 0 0}
+  .exercise h3{margin-top:0}
+  .answer{font-size:14.5px;color:var(--ink-soft);margin:10px 0 0}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
+  @media print{body{background:#fff;font-size:12pt}.page{box-shadow:none;max-width:none;padding:0}.chapter{page-break-after:always}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <p class="cover-kicker">阶段二 · 机器学习与 LLM 应用</p>
+  <h1 class="cover-title">从一条数据管线，到一个能自己动手的 Agent</h1>
+  <p class="cover-sub">每章一个能跑的产物；所有例子都能离线运行，不需要 API key。</p>
+  <p class="cover-meta">
+    环境：Windows · Python 3.14 · .venv 已装 numpy 2.5.4<br>
+    运行：<code>.\.venv\Scripts\python.exe 脚本名.py</code>（先 <code>cd</code> 到 stage2-ml-llm）<br>
+    数据：<code>data/study.csv</code>，10 天学习记录
+  </p>
+</header>
+
+<nav class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#ch0">第 0 章 数据管线：读表格、算统计、存结果</a></li>
+    <li><a href="#ch1">第 1 章 向量与相似度：让程序判断“意思接近”</a></li>
+    <li><a href="#ch2">第 2 章 拟合一条直线：机器怎么“学”</a></li>
+    <li><a href="#ch3">第 3 章 分类：画一条线，猜对多少</a></li>
+    <li><a href="#ch4">第 4 章 调用 LLM：你在点外卖</a></li>
+    <li><a href="#ch5">第 5 章 结构化输出：让它交表格，不是作文</a></li>
+    <li><a href="#ch6">第 6 章 最小 Agent：想一步、做一步、看结果</a></li>
+    <li><a href="#ch7">第 7 章 评测与成本：改完到底变好没有</a></li>
+    <li><a href="#appendix">附录：术语表、环境、下一步</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section class="chapter" id="ch0">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 0</p>
+    <h1 class="ch-title">数据管线：读表格、算统计、存结果</h1>
+    <p class="chapter-goal">学完能做出：把一份 CSV 变成一份随时能再读的 JSON 统计报告。</p>
+  </div>
+
+  <p>你有 10 天的学习记录，想知道两件事：一共学了多久；算法和 Python 哪个正确率更高。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>做饭分三步：买菜、洗菜是一步；切菜、配菜是第二步；装盘端出去是第三步。数据管线就是同一件事——<strong>读进来（买菜）、算一算（切配）、写出去（装盘）</strong>。少了任何一步，菜都上不了桌。
+  </div>
+
+  <h2><span class="sec-no">0.1</span>第一步：读进来 <span class="badge b">B</span></h2>
+  <p>CSV 就是“用逗号分隔的表格”，第一行是表头。Python 自带 <code>csv</code>，不用装库。</p>
+  <div class="code"><span class="label">pipeline.py</span><pre>import csv
+from pathlib import Path
+
+rows = []
+with open("data/study.csv", encoding="utf-8", newline="") as file:
+    for row in csv.DictReader(file):        # 每一行变成一个字典
+        rows.append({
+            "subject": row["科目"],          # 表头叫“科目”，就按这个名字取值
+            "minutes": int(row["时长分钟"]),  # 表格里是文字，转成整数
+            "accuracy": float(row["正确率"]), # 转成小数
+        })
+
+print(len(rows))
+print(rows[0])</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>10
+{'subject': '算法', 'minutes': 45, 'accuracy': 0.8}</pre></div>
+  <p><code>csv.DictReader</code> 做的事：把表头当键，把每行当值，交给你一串字典。表格里的数字读进来仍然是<strong>文字</strong>，所以要 <code>int()</code>、<code>float()</code> 转一次。</p>
+
+  <h2><span class="sec-no">0.2</span>第二步：算一算 <span class="badge b">B</span></h2>
+  <p>按科目分组，各算平均。分组的动作是“以科目为键，把同类行塞进同一个列表”。</p>
+  <div class="code"><span class="label">pipeline.py（接着写）</span><pre>by_subject = {}
+for row in rows:
+    by_subject.setdefault(row["subject"], []).append(row)
+
+summary = {}
+for name, group in by_subject.items():
+    summary[name] = {
+        "count": len(group),
+        "avg_min": round(sum(r["minutes"] for r in group) / len(group), 1),
+        "avg_acc": round(sum(r["accuracy"] for r in group) / len(group), 3),
+    }
+
+print(summary)</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>{'算法': {'count': 5, 'avg_min': 36.0, 'avg_acc': 0.71}, 'Python': {'count': 5, 'avg_min': 50.0, 'avg_acc': 0.816}}</pre></div>
+  <p>结果读法：算法练了 5 天、平均 36 分钟、平均正确率 0.710；Python 5 天、50 分钟、0.816。也就是说 Python 花的时间更长，正确率也更高。</p>
+
+  <h2><span class="sec-no">0.3</span>第三步：写出去 <span class="badge b">B</span></h2>
+  <p>统计结果要留着下次用，写成一个 JSON 文件。JSON 就是“带引号的键值对文本”，几乎所有程序都能读。</p>
+  <div class="code"><span class="label">pipeline.py（收尾）</span><pre>import json
+
+result = {"total_min": sum(r["minutes"] for r in rows), "subjects": summary}
+Path("results").mkdir(exist_ok=True)
+Path("results/summary.json").write_text(
+    json.dumps(result, ensure_ascii=False, indent=2),
+    encoding="utf-8",
+)
+print(result["total_min"])</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>430</pre></div>
+  <p><code>ensure_ascii=False</code> 让中文原样写出，而不是变成 <code>\u7b97\u6cd5</code>；<code>indent=2</code> 让文件有缩进，人能直接读。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>CSV</td><td>逗号分隔的纯文本表格，第一行是表头</td></tr>
+    <tr><td><code>DictReader</code></td><td>把每一行变成“表头 → 值”的字典</td></tr>
+    <tr><td><code>setdefault(k, [])</code></td><td>键不存在就先放一个空列表，然后返回它</td></tr>
+    <tr><td>JSON</td><td>一种人人都能读的键值对文本，用来存、用来传</td></tr>
+    <tr><td><code>dumps</code> / <code>loads</code></td><td>Python 对象 → 文本 / 文本 → Python 对象</td></tr>
+  </table>
+
+  <div class="warn"><strong>三个常见错。</strong>不加 <code>newline=""</code>，Windows 上可能多出空行；忘记 <code>int()</code>，求和会变成字符串拼接；忘写 <code>encoding="utf-8"</code>，中文可能变乱码。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么读进来的“45”不能直接相加？</p>
+    <p>2. <code>by_subject</code> 的键是什么，值是什么？</p>
+    <p>3. 不写 <code>ensure_ascii=False</code>，文件里的中文会变成什么？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>加一个字段 <code>best_day</code>：正确率最高的那一天和它的数值。提示：<code>max(rows, key=lambda r: r["accuracy"])</code>。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 1</p>
+    <h1 class="ch-title">向量与相似度：让程序判断“意思接近”</h1>
+    <p class="chapter-goal">学完能做出：把三句话变成三条打分卡，算出谁和谁最像。</p>
+  </div>
+
+  <p>程序不认识“意思”。它只会算数。所以要让“意思接近”变成“数字接近”。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>给一道菜打三个分：辣、甜、咸，每项 0 到 5 分。宫保鸡丁是（辣 4，甜 2，咸 3），水煮鱼是（辣 5，甜 0，咸 4），蛋糕是（辣 0，甜 5，咸 0）。<br>
+    两张打分卡越接近，菜的口味就越像。<strong>句子也能打这样的分</strong>：每个维度代表一类含义，分数越高，越沾这个意思。
+  </div>
+
+  <h2><span class="sec-no">1.1</span>句子变成三个数 <span class="badge b">B</span></h2>
+  <p>先手动给三句话打分，维度用“算法、练习、记忆”：</p>
+  <table>
+    <tr><th>句子</th><th>算法</th><th>练习</th><th>记忆</th></tr>
+    <tr><td>算法练习</td><td class="num">3</td><td class="num">1</td><td class="num">0</td></tr>
+    <tr><td>刷算法题</td><td class="num">2</td><td class="num">2</td><td class="num">0</td></tr>
+    <tr><td>背单词</td><td class="num">0</td><td class="num">1</td><td class="num">3</td></tr>
+  </table>
+  <p>一行三个数，就叫一个<strong>向量</strong>。真实的大模型会用几百上千个维度，原理一样，只是数更多。</p>
+
+  <h2><span class="sec-no">1.2</span>怎么算“像” <span class="badge b">B</span></h2>
+  <p>用余弦相似度：把两个向量当成两支箭，看它们指向是否一致。方向一致得 1，垂直得 0，相反得 -1。</p>
+  <div class="code"><span class="label">similarity.py</span><pre>import math
+
+def cosine(a, b):
+    dot = sum(x * y for x, y in zip(a, b))        # 对应位置相乘再相加
+    na = math.sqrt(sum(x * x for x in a))         # 第一支箭的长度
+    nb = math.sqrt(sum(y * y for y in b))         # 第二支箭的长度
+    return dot / (na * nb)
+
+vectors = {"算法练习": [3, 1, 0], "刷算法题": [2, 2, 0], "背单词": [0, 1, 3]}
+base = vectors["算法练习"]
+for name, vec in vectors.items():
+    print(name, round(cosine(base, vec), 3))</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>算法练习 1.0
+刷算法题 0.894
+背单词 0.1</pre></div>
+  <p>自己和自己比是 1.0；“刷算法题”方向接近，0.894；“背单词”几乎垂直，0.1。程序据此就能排序：谁最像。</p>
+
+  <h2><span class="sec-no">1.3</span>这套东西用在哪 <span class="badge c">C</span></h2>
+  <p>你以后会遇到“检索”：用户问一句话，从几百条资料里找最相关的几条。做法就是——每句话提前算好向量，存起来；提问时算提问的向量，逐个比余弦，取前几名。这就是 RAG（先检索、再让模型回答）的地基。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>向量</td><td>一串数，代表一个东西的特征</td></tr>
+    <tr><td>维度</td><td>这串数有几个，就代表几个特征</td></tr>
+    <tr><td>点积</td><td>对应位置相乘再相加，衡量“同方向的程度”</td></tr>
+    <tr><td>余弦相似度</td><td>只看方向不看长短，范围 -1 到 1</td></tr>
+  </table>
+
+  <div class="warn"><strong>注意。</strong>余弦只看方向，不看长度。所以“算法练习”和“算法练习算法练习”会被判成完全一样（1.0），尽管后者说了两遍。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么不能直接用文字比较“像不像”？</p>
+    <p>2. 余弦相似度里，1、0、-1 各代表什么？</p>
+    <p>3. 检索时为什么要先给每句话算好向量？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>加一句“看算法讲解”（建议打分：算法 3，练习 0，记忆 1），算出它和“算法练习”的相似度，再排序输出前三名。</p>
+    <p class="answer">提示：把结果装进列表，用 <code>sorted(items, key=lambda x: x[1], reverse=True)</code>。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 2</p>
+    <h1 class="ch-title">拟合一条直线：机器怎么“学”</h1>
+    <p class="chapter-goal">学完能做出：用 10 条记录，拟合出一条“学习时长 → 正确率”的直线，并预测新时长。</p>
+  </div>
+
+  <p>手上有 10 组“学了多久 / 正确率多少”。问题：能不能给一条规律——多学 10 分钟，正确率大概涨多少？</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>桌上有 10 颗钉子，你要拉一根绳子，让它尽量贴着所有钉子。<br>
+    绳子可能偏高、偏低、斜得太厉害。每颗钉子到绳子的距离，平方后加起来，越小说明贴得越好。这个“总距离”就叫<strong>损失</strong>。<br>
+    调整绳子的办法像<strong>蒙眼下山</strong>：你只看脚下哪边更陡，就朝那边迈一小步；每一步都重复，直到走到谷底。这就是<strong>梯度下降</strong>。
+  </div>
+
+  <h2><span class="sec-no">2.1</span>先把数据摆平 <span class="badge a">A</span></h2>
+  <p>时长在 20 到 70 之间，正确率在 0.55 到 0.95 之间。两个数单位差得远，直接算会让“时长”压过“正确率”。所以先做<strong>标准化</strong>：减均值、除标准差，把两边都变成“离平均有几个身位”。</p>
+  <div class="code"><span class="label">fit_line.py</span><pre>import numpy as np
+
+x = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)
+y = np.array([0.80, 0.70, 0.90, 0.60, 0.85, 0.75, 0.65, 0.95, 0.55, 0.88], dtype=float)
+
+x_mean, x_std = x.mean(), x.std()
+y_mean, y_std = y.mean(), y.std()
+xs = (x - x_mean) / x_std            # 标准化后的时长
+ys = (y - y_mean) / y_std            # 标准化后的正确率</pre></div>
+  <p>标准化不改变规律，只是换了一把尺子。</p>
+
+  <h2><span class="sec-no">2.2</span>一根绳子 = 两个参数 <span class="badge a">A</span></h2>
+  <p>直线写成 <code>预测值 = w * 输入 + b</code>。<code>w</code> 管倾斜，<code>b</code> 管上下平移。机器“学”，学的就是这两个数。</p>
+  <div class="code"><span class="label">fit_line.py（训练）</span><pre>w, b = 0.0, 0.0
+lr = 0.1                                   # 学习率：每步迈多大
+for step in range(200):
+    pred = w * xs + b                      # 当前绳子的预测
+    loss = ((pred - ys) ** 2).mean()       # 所有钉子到绳子的平均平方距离
+    dw = 2 * ((pred - ys) * xs).mean()     # 往哪边调 w 更陡
+    db = 2 * (pred - ys).mean()            # 往哪边调 b 更陡
+    w -= lr * dw                           # 朝下坡方向迈一步
+    b -= lr * db
+    if step % 50 == 0:
+        print(f"step {step:3d} loss {loss:.4f}")</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>step   0 loss 1.0000
+step  50 loss 0.1501
+step 100 loss 0.1501
+step 150 loss 0.1501</pre></div>
+  <p>损失从 1.0000 掉到 0.1501，前 50 步就把能降的都降完了。剩下的 0.1501 是数据本身的抖动，直线贴不成完美。</p>
+
+  <h2><span class="sec-no">2.3</span>翻译回你熟悉的单位 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">fit_line.py（换算与预测）</span><pre>slope = w * y_std / x_std
+intercept = y_mean + y_std * b - slope * x_mean
+print(f"正确率 ≈ {slope:.4f} * 时长 + {intercept:.3f}")
+print(f"学 40 分钟，预测正确率 {slope * 40 + intercept:.2f}")
+print(f"学 70 分钟，预测正确率 {slope * 70 + intercept:.2f}")</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>最终 w=0.922 b=-0.000
+正确率 ≈ 0.0078 * 时长 + 0.428
+学 40 分钟，预测正确率 0.74
+学 70 分钟，预测正确率 0.97</pre></div>
+  <p>结论：每多学 10 分钟，正确率约涨 0.078；学 40 分钟大概 0.74，学 70 分钟大概 0.97。注意 0.97 已经贴近上限，真实世界不会一直线性涨——这就是“模型有适用范围”。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>参数 <code>w</code>、<code>b</code></td><td>直线要学的两个数：倾斜、平移</td></tr>
+    <tr><td>损失 loss</td><td>预测和真实差多少，平方后取平均</td></tr>
+    <tr><td>梯度</td><td>“往哪个方向调，损失降得最快”</td></tr>
+    <tr><td>学习率 lr</td><td>每步迈多大。太大冲过头，太小走太慢</td></tr>
+    <tr><td>标准化</td><td>减均值除标准差，让不同单位的数可比</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>学习率过大，loss 会变成 <code>nan</code> 或来回震荡；忘了标准化，w 会小得看不见，误以为“没学到东西”。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 直线里的 <code>w</code> 和 <code>b</code> 各控制什么？</p>
+    <p>2. loss 从 1.0 降到 0.15，说明绳子发生了什么变化？</p>
+    <p>3. 为什么预测 70 分钟的结果不一定可信？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>把学习率从 0.1 改成 1.0，跑一次，观察 loss 是否还稳定下降；再改成 0.01，数一数要不要更多步才降下去。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 3</p>
+    <h1 class="ch-title">分类：画一条线，猜对多少</h1>
+    <p class="chapter-goal">学完能做出：只给学习时长，判断“这次能不能及格”，并算出猜对的比例。</p>
+  </div>
+
+  <p>上一章预测的是一个具体数值。这一章要的是“是 / 否”：这次学习能不能及格。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>门口站着一位保安，手里有一条线：站在线左边的不让进，右边的放行。<br>
+    我们要学的是“这条线画在哪”。学完之后，来一个人，看他在线的哪边，就给出判断。<br>
+    判断对不对，要拿<strong>没参与画线的人</strong>去试——就像练习题用来学，考试题用来验。
+  </div>
+
+  <h2><span class="sec-no">3.1</span>先定“及格”是什么 <span class="badge a">A</span></h2>
+  <p>正确率 ≥ 0.7 记 1（及格），否则记 0。这样“数值预测”就变成了“是 / 否”。</p>
+  <div class="code"><span class="label">classify.py</span><pre>import numpy as np
+
+minutes = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)
+passed = np.array([1, 1, 1, 0, 1, 1, 0, 1, 0, 1], dtype=float)
+
+x_mean, x_std = minutes.mean(), minutes.std()
+xs = (minutes - x_mean) / x_std
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))      # 把任意数压到 0~1，当作概率</pre></div>
+  <p><code>sigmoid</code> 的作用：原始输出可能是 -3 或 +5，压到 0 到 1 之间，才能当概率读。</p>
+
+  <h2><span class="sec-no">3.2</span>画线：训练 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">classify.py（训练）</span><pre>def train(xs, ys, lr=0.5, steps=300):
+    w, b = 0.0, 0.0
+    for _ in range(steps):
+        p = sigmoid(w * xs + b)          # 当前判断“及格”的概率
+        dw = ((p - ys) * xs).mean()      # 预测偏乐观还是偏悲观，往反方向调
+        db = (p - ys).mean()
+        w -= lr * dw
+        b -= lr * db
+    return w, b</pre></div>
+  <p>和上一章的梯度下降同一个套路，只是把“平方误差”换成了“概率误差”。</p>
+
+  <h2><span class="sec-no">3.3</span>练习题与考试题 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">classify.py（划分与评估）</span><pre>train_mask = np.array([True]*7 + [False]*3)   # 前 7 条用来学
+test_mask = ~train_mask                        # 后 3 条用来验
+
+w, b = train(xs[train_mask], passed[train_mask])
+
+def predict(w, b, values):
+    p = sigmoid(w * values + b)
+    return (p &gt;= 0.5).astype(int), p           # 概率过半就判及格
+
+pred_train, _ = predict(w, b, xs[train_mask])
+pred_test, prob_test = predict(w, b, xs[test_mask])
+print(f"训练集准确率 {(pred_train == passed[train_mask]).mean():.0%}")
+print(f"测试集准确率 {(pred_test == passed[test_mask]).mean():.0%}")
+for m, p, t in zip(minutes[test_mask], prob_test, passed[test_mask]):
+    print(f"时长 {m:.0f} → 概率 {p:.2f}，预测 {int(p &gt;= 0.5)}，真实 {int(t)}")
+print(f"分界线约在 {x_mean + (-b / w) * x_std:.1f} 分钟")</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>训练集 7 条，准确率 71%
+测试集 3 条，准确率 100%
+时长 55 → 概率 0.99，预测 1，真实 1
+时长 20 → 概率 0.07，预测 0，真实 0
+时长 70 → 概率 1.00，预测 1，真实 1
+分界线约在 32.1 分钟</pre></div>
+  <p>测试集 3 条全对，不代表模型好——样本太少。真正评估要几十上百条，还要看“错的那类错得多不多”。</p>
+
+  <div class="analogy">
+    <strong>换个说法理解“过拟合”。</strong>把练习题背得滚瓜烂熟，连题号都记住，考试一换题就傻眼。模型也一样：在训练集上 100%，测试集上掉到 60%，就是背题了。
+  </div>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>分类</td><td>输出是“哪一类”，不是具体数值</td></tr>
+    <tr><td>概率 / 阈值</td><td>模型给 0~1 的分，超过 0.5 就判“是”</td></tr>
+    <tr><td>训练集 / 测试集</td><td>用来学的数据 / 用来验的数据，不能混</td></tr>
+    <tr><td>准确率</td><td>猜对的比例</td></tr>
+    <tr><td>过拟合</td><td>训练集很好、测试集很差，等于背题</td></tr>
+  </table>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么不能拿训练集的数据来报准确率？</p>
+    <p>2. 概率 0.99 和 1.00 有什么区别？</p>
+    <p>3. 测试集只有 3 条时，100% 意味着什么？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>把及格线从 0.7 改成 0.8，重新算标签，再训练一次。观察分界线往哪边移、测试集还对不对。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 4</p>
+    <h1 class="ch-title">调用 LLM：你在点外卖</h1>
+    <p class="chapter-goal">学完能做出：写一个本机模拟模型服务，再用 HTTP 向它提问、拿到回复。</p>
+  </div>
+
+  <p>模型不在你电脑上，在别人的服务器上。你的程序要做的，是把问题送过去，再把答案取回来。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>点外卖：你在 App 里写“一份牛肉面，不要香菜”（这就是 prompt），平台把订单传给商家（HTTP 请求），商家做完打包送回（JSON 响应）。<br>
+    你不需要知道厨房在哪、灶多大，只要会写订单、会收餐。<strong>调模型就是点外卖</strong>。
+  </div>
+
+  <h2><span class="sec-no">4.1</span>先在家开个“假厨房” <span class="badge a">A</span></h2>
+  <p>没有 key 也能练。用标准库起一个本机服务，收到问题就按规则回一句。</p>
+  <div class="code"><span class="label">mock_llm.py</span><pre>import json, threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers["Content-Length"])
+        body = json.loads(self.rfile.read(length))
+        prompt = body["prompt"]
+        if "时长" in prompt:
+            reply = "建议每天 40 分钟：先做题，再看讲解。"
+        else:
+            reply = "收到你的问题：" + prompt[:20]
+        data = json.dumps({"reply": reply}, ensure_ascii=False).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *args):
+        pass
+
+server = HTTPServer(("127.0.0.1", 18090), Handler)
+threading.Thread(target=server.serve_forever, daemon=True).start()</pre></div>
+
+  <h2><span class="sec-no">4.2</span>下单与收餐 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">mock_llm.py（接着写）</span><pre>import urllib.request
+
+def ask(prompt):
+    request = urllib.request.Request(
+        "http://127.0.0.1:18090/chat",                     # 厨房地址
+        data=json.dumps({"prompt": prompt}, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},      # 告诉对方：我送的是 JSON
+    )
+    with urllib.request.urlopen(request, timeout=3) as response:
+        return json.loads(response.read())["reply"]
+
+print(ask("我每天学习时长多少合适？"))
+server.shutdown()</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>建议每天 40 分钟：先做题，再看讲解。</pre></div>
+
+  <h2><span class="sec-no">4.3</span>换成真实接口要改哪三处 <span class="badge b">B</span></h2>
+  <table>
+    <tr><th>位置</th><th>模拟版</th><th>真实版</th></tr>
+    <tr><td>地址</td><td><code>127.0.0.1:18090/chat</code></td><td>服务商给的 base_url，如 <code>/v1/chat/completions</code></td></tr>
+    <tr><td>请求体</td><td><code>{"prompt": ...}</code></td><td><code>{"model": ..., "messages": [{"role":"user","content":...}]}</code></td></tr>
+    <tr><td>认证</td><td>不需要</td><td>请求头加 <code>Authorization: Bearer sk-...</code></td></tr>
+  </table>
+  <p>其余不变：还是 POST、还是 JSON、还是从响应里取文本。模拟服务的价值就在这里——协议学会了，换地址和字段就能接真模型。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>API</td><td>别人开给你的一扇门，按约定递东西进去</td></tr>
+    <tr><td>endpoint</td><td>这扇门的具体地址（URL）</td></tr>
+    <tr><td>prompt</td><td>你写的那张订单</td></tr>
+    <tr><td>JSON</td><td>双方都认的文本格式</td></tr>
+    <tr><td>token</td><td>模型计费的最小单位，约等于半个汉字到一个词</td></tr>
+  </table>
+
+  <div class="warn"><strong>三个坑。</strong>忘了 <code>Content-Type: application/json</code>，服务端解析不了；<code>timeout</code> 不写，卡住就没完；把 key 写进代码再传仓库，等于公开密码。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 一次调用里，哪部分是“订单”，哪部分是“回执”？</p>
+    <p>2. 为什么本机模拟服务也值得先跑一遍？</p>
+    <p>3. 真实接口比模拟版多带了什么？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>给模拟服务加一条规则：问题里出现“算法”时，回复“先做题，再讲解”。再写两条不同的 prompt，确认两条回复不同。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 5</p>
+    <h1 class="ch-title">结构化输出：让它交表格，不是作文</h1>
+    <p class="chapter-goal">学完能做出：要求模型返回 JSON，解析失败时自动重问一次，并把字段直接用起来。</p>
+  </div>
+
+  <p>模型回你一段话，人能读，程序不能。程序要的是字段：科目是什么、时长是多少。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>你让同事“把这单记下来”，他回你一段流水账，你还得自己抄进表格。<br>
+    换个说法：“请按表格填：科目、时长。”他就交回一张填好的表。<strong>结构化输出就是要求对方交表，而不是交作文。</strong>
+  </div>
+
+  <h2><span class="sec-no">5.1</span>自由发挥 vs 交表格 <span class="badge a">A</span></h2>
+  <p>先看自由发挥的后果：返回的是一句话，<code>json.loads</code> 直接失败。</p>
+  <div class="code"><span class="label">structured.py</span><pre>import json
+
+def fake_model(prompt, strict=False):
+    if strict:
+        return '{"subject": "算法", "minutes": 45}'
+    return "我猜是算法，45 分钟吧"
+
+text = fake_model("帮我提取：今天做了 45 分钟算法")
+print(text)
+json.loads(text)          # 这一行会抛 JSONDecodeError</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>我猜是算法，45 分钟吧
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</pre></div>
+
+  <h2><span class="sec-no">5.2</span>加一句“只输出 JSON”，失败就重试 <span class="badge a">A</span></h2>
+  <p>重试不是碰运气，而是把要求说得更死。真实调用时还可以降低随机性（temperature 设 0）。</p>
+  <div class="code"><span class="label">structured.py（完整）</span><pre>def extract(prompt):
+    text = fake_model(prompt)
+    try:
+        return json.loads(text), text
+    except json.JSONDecodeError:
+        strict_prompt = prompt + "\n只输出 JSON，不要解释。"
+        text2 = fake_model(strict_prompt, strict=True)
+        return json.loads(text2), text2
+
+result, raw = extract("帮我从这句话里提取：今天做了 45 分钟算法")
+print("第二次返回：", raw)
+print("取用字段：科目 =", result["subject"], "，时长 =", result["minutes"])</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>第一次返回：我猜是算法，45 分钟吧
+解析失败，加一句“只输出 JSON”再问
+第二次返回： {"subject": "算法", "minutes": 45}
+解析成功： {'subject': '算法', 'minutes': 45}
+取用字段：科目 = 算法 ，时长 = 45</pre></div>
+
+  <h2><span class="sec-no">5.3</span>字段到手之后 <span class="badge b">B</span></h2>
+  <p>拿到 <code>result</code> 就等于拿到一个普通字典，可以写进 CSV、存进 sqlite、拿去算统计。模型输出不再是一段只能看的文字，而是一行能用的数据。</p>
+  <div class="note">约定：字段名固定成 <code>subject</code>、<code>minutes</code>，并要求“只输出 JSON”。字段名一旦定下，程序就能稳定解析；让模型自由命名，接一次崩一次。</div>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>结构化输出</td><td>让模型按固定字段返回，而不是自由文字</td></tr>
+    <tr><td>schema</td><td>字段清单：叫什么、什么类型、必不必填</td></tr>
+    <tr><td>解析</td><td>把文本变成程序能用的对象</td></tr>
+    <tr><td>重试</td><td>失败后用更严格的要求再问一次，而不是原样重发</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>模型爱在 JSON 外面包一句“好的，这是结果：”，所以解析前可能要截取第一个 <code>{</code> 到最后一个 <code>}</code>；重试没有上限，写死最多 2 次，避免死循环烧钱。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么自由文字拿来做程序输入会失败？</p>
+    <p>2. 第二次为什么能成功，改的是哪一句？</p>
+    <p>3. 重试为什么要有次数上限？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>把返回字段扩成四个：<code>subject</code>、<code>minutes</code>、<code>date</code>、<code>mood</code>。写一个 <code>extract_task</code>，要求返回这四个字段，缺一个就判失败并重试。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 6</p>
+    <h1 class="ch-title">最小 Agent：想一步、做一步、看结果</h1>
+    <p class="chapter-goal">学完能做出：一个能自己决定“先查天气、再决定带不带伞”的循环程序，并把每一步写进日志。</p>
+  </div>
+
+  <p>单次问答解决不了多步任务。“明天要不要带伞”要先查天气，再根据天气给建议。两步之间要有人做决定。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>带一个实习生干活。你不能一口气说完所有步骤，只能说“你先去查天气”“根据结果再决定”。<br>
+    他会：<strong>想一下该干什么 → 去做 → 看结果 → 再想下一步</strong>，直到事情办完。为防止他钻牛角尖，你规定“最多五步，走完就停”。<br>
+    这个循环，就是 Agent。
+  </div>
+
+  <h2><span class="sec-no">6.1</span>先给它几件工具 <span class="badge a">A</span></h2>
+  <p>工具就是普通函数：收参数、给结果。名字、参数、返回值都要写清楚，模型才知道什么时候该用哪个。</p>
+  <div class="code"><span class="label">agent.py</span><pre>def get_weather(args):
+    return {"city": args["city"], "rain": True}
+
+def plan_trip(args):
+    return "带伞" if args["rain"] else "不用带伞"
+
+TOOLS = {"get_weather": get_weather, "plan_trip": plan_trip}</pre></div>
+
+  <h2><span class="sec-no">6.2</span>循环：想、做、看 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">agent.py（循环）</span><pre>import json, sqlite3
+
+state = {"city": "常州", "rain": None, "advice": None}
+db = sqlite3.connect(":memory:")
+db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")
+
+for step in range(1, 6):                      # 最多五步
+    if state["rain"] is None:
+        action, args = "get_weather", {"city": state["city"]}
+    elif state["advice"] is None:
+        action, args = "plan_trip", {"rain": state["rain"]}
+    else:
+        break                                  # 事情办完，退出
+
+    result = TOOLS[action](args)               # 真正动手
+    if action == "get_weather":
+        state["rain"] = result["rain"]          # 把结果记进状态
+    else:
+        state["advice"] = result
+
+    print(f"[{step}] 调工具 {action}({json.dumps(args, ensure_ascii=False)}) → {json.dumps(result, ensure_ascii=False)}")
+    db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, json.dumps(result, ensure_ascii=False)))
+
+db.commit()
+answer = f"明天{state['city']}有雨，出门{state['advice']}"
+print(f"[{step}] 结束：{answer}")
+print("日志：", db.execute("SELECT step, action FROM steps").fetchall())</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>[1] 调工具 get_weather({"city": "常州"}) → {"city": "常州", "rain": true}
+[2] 调工具 plan_trip({"rain": true}) → "带伞"
+[3] 结束：明天常州有雨，出门带伞
+日志： [(1, 'get_weather'), (2, 'plan_trip')]</pre></div>
+  <p>关键在 <code>state</code>：它记住“天气查过没有、建议给过没有”。没有状态，循环就会一直重复查天气，永远停不下来。</p>
+
+  <h2><span class="sec-no">6.3</span>为什么一定要日志 <span class="badge b">B</span></h2>
+  <p>Agent 出错时，你看到的只是“答得不对”。要知道哪一步开始错，只能靠日志：调了哪个工具、参数是什么、回了什么、第几步。写进 sqlite，事后能查。</p>
+  <div class="code"><span class="label">agent.py（日志）</span><pre>import sqlite3
+db = sqlite3.connect(":memory:")
+db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")
+db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, str(result)))
+db.commit()
+print(db.execute("SELECT step, action FROM steps").fetchall())</pre></div>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>工具</td><td>一个普通函数，参数和返回值说清楚</td></tr>
+    <tr><td>状态 state</td><td>记住“做到哪一步了”的小本子</td></tr>
+    <tr><td>循环上限</td><td>最多走几步，防止绕圈烧钱</td></tr>
+    <tr><td>日志</td><td>每步的输入输出，出错时唯一的证据</td></tr>
+  </table>
+
+  <div class="warn"><strong>两个坑。</strong>没有上限，模型可能反复调同一个工具；没有日志，只能看到最终答案，无法定位是哪一步开始错。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 这个循环靠什么判断“可以停了”？</p>
+    <p>2. 如果去掉 <code>max_steps</code>，可能发生什么？</p>
+    <p>3. 日志里应该记哪三样东西？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>加第三个工具 <code>send_message(text)</code>，把最终建议“发出去”（打印即可）。要求：只有拿到建议之后才允许调用它。</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch7">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 7</p>
+    <h1 class="ch-title">评测与成本：改完到底变好没有</h1>
+    <p class="chapter-goal">学完能做出：10 条测试问题，算出通过率，并粗估这次改动的 token 成本。</p>
+  </div>
+
+  <p>改了 prompt、换了模型，感觉“好像好一点”。感觉不算数，要有一份固定的卷子，每次跑同一套题。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>模拟考：题目固定、评分标准固定，考完看分数，才知道这次补习有没有用。<br>
+    还要看“油费”：跑一遍卷子要烧多少 token，涨价前先算清楚。
+  </div>
+
+  <h2><span class="sec-no">7.1</span>卷子和评分标准 <span class="badge b">B</span></h2>
+  <div class="code"><span class="label">evaluate.py（节选：题目只列前五条）</span><pre>CASES = [
+    ("学习 45 分钟算法够吗？", "40 分钟"),
+    ("我每天学多久？", "40 分钟"),
+    ("算法怎么练？", "先做题"),
+    ...
+]
+
+for prompt, must_contain in CASES:
+    reply = answer(prompt)
+    if must_contain in reply:
+        passed += 1
+    else:
+        failed.append((prompt, must_contain, reply))</pre></div>
+  <p>评分标准故意写得简单：回复里必须出现某个关键词。关键词写得太宽，什么都能过；写得太窄，正确回答也会被判错。这一条本身就是需要打磨的地方。</p>
+
+  <h2><span class="sec-no">7.2</span>跑一遍，看分数 <span class="badge b">B</span></h2>
+  <div class="out"><span class="label">实际输出</span><pre>通过 9/10，通过率 90%
+未通过：一天学两小时行吗？ → 期望包含“分两次”，实际“可以，但别超过 40 分钟不休息。”
+输入共 82 个字符，粗估 41 tokens
+按每千 token 0.01 元估算，这一轮约 0.00041 元</pre></div>
+  <p>90% 里那 10% 才是重点。看失败那条：回答说得通，是评分标准太死。这说明“改 prompt”之前，先确认卷子本身没判错。</p>
+
+  <h2><span class="sec-no">7.3</span>成本怎么估 <span class="badge c">C</span></h2>
+  <p>粗估：中文大约 2 个字符算 1 个 token，英文大约 4 个字符算 1 个。正式计费看服务商返回的 usage 字段，这里只是估算。跑 1000 次之前，先算清一次多少钱。</p>
+
+  <table>
+    <tr><th>词</th><th>人话</th></tr>
+    <tr><td>测试集</td><td>固定的一批问题和预期答案</td></tr>
+    <tr><td>通过率</td><td>答对的比例，用来横向比较版本</td></tr>
+    <tr><td>token</td><td>计费单位，输入输出都算</td></tr>
+    <tr><td>回归</td><td>改 A 修好了，B 却坏了</td></tr>
+  </table>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么评测要用固定的一套题？</p>
+    <p>2. 通过率掉了，一定是模型变差吗？</p>
+    <p>3. 估算成本时，输入和输出都要算吗？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>把测试集从 10 条扩到 20 条，故意加 3 条“答案有多种说法”的题。观察通过率怎么变，判断是模型的问题还是评分标准的问题。</p>
+  </div>
+</section>
+
+<section class="chapter" id="appendix">
+  <div class="chapter-head">
+    <p class="chapter-no">Appendix</p>
+    <h1 class="ch-title">附录：术语、环境、下一步</h1>
+  </div>
+
+  <h2><span class="sec-no">A.1</span>术语表</h2>
+  <table>
+    <tr><th>词</th><th>一句话</th></tr>
+    <tr><td>数据管线</td><td>读进来、算一算、写出去，三步固定</td></tr>
+    <tr><td>向量 / 维度</td><td>一串数代表一个东西的特征；几个数就是几维</td></tr>
+    <tr><td>余弦相似度</td><td>只看方向不看长度，1 最像，0 无关</td></tr>
+    <tr><td>参数 / 损失</td><td>模型要学的那几个数；预测和真实差多少</td></tr>
+    <tr><td>梯度下降</td><td>每次朝“降得最快”的方向迈一小步</td></tr>
+    <tr><td>学习率</td><td>每一步迈多大</td></tr>
+    <tr><td>训练集 / 测试集</td><td>用来学 / 用来验，必须分开</td></tr>
+    <tr><td>过拟合</td><td>练习题满分、考试不及格</td></tr>
+    <tr><td>prompt</td><td>你写给模型的订单</td></tr>
+    <tr><td>token</td><td>计费与长度单位，约半个汉字</td></tr>
+    <tr><td>结构化输出</td><td>让模型按固定字段交表</td></tr>
+    <tr><td>工具调用</td><td>把函数暴露给模型，让它自己选</td></tr>
+    <tr><td>Agent</td><td>想 → 做 → 看结果的循环，有状态和上限</td></tr>
+    <tr><td>评测</td><td>固定卷子 + 通过率，用来比较版本</td></tr>
+  </table>
+
+  <h2><span class="sec-no">A.2</span>环境与命令</h2>
+  <div class="code"><span class="label">每次开始</span><pre>cd "$HOME\Desktop\stage2-ml-llm"
+$env:PYTHONUTF8='1'
+.\.venv\Scripts\python.exe check_env.py</pre></div>
+  <p>看到 Python 版本、numpy 2.5.4、数据文件“存在”，就可以开跑。</p>
+
+  <h2><span class="sec-no">A.3</span>下一步：把八章拼成一个东西</h2>
+  <p>八章各自是一个零件。下一步做一个“学习助手”：</p>
+  <ol class="plain">
+    <li>读 <code>study.csv</code>，算统计（第 0 章）</li>
+    <li>把错题记录变成向量，按相似度找相关的（第 1 章）</li>
+    <li>用统计结果回答“我该练什么”（第 2、3 章的判断）</li>
+    <li>调模型生成建议（第 4、5 章）</li>
+    <li>多步任务用 Agent 循环（第 6 章）</li>
+    <li>每次改动跑评测并记成本（第 7 章）</li>
+  </ol>
+  <p>这六件事拼起来，就是一个能干活的小系统。它的每一块，你都已经单独跑通过一次。</p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>阶段二教材 · 所有数字来自本机实际运行输出</p>
+</footer>
+</div>
+</body>
+</html>
