@@ -69,7 +69,7 @@
   .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
   @media print{body{background:#fff;font-size:12pt}.page{padding:0}.chapter{page-break-after:always}pre{white-space:pre-wrap}}
 </style>
-</head>
+<style>pre.mermaid{margin:0 0 16px;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,monospace;color:#23231f}</style></head>
 <body>
 <div class="page">
 
@@ -200,6 +200,17 @@ def flaky_weather(args):
 {'ok': True, 'result': {'city': '常州', 'rain': True}, 'attempts': 3}</pre></div>
   <p>三个要点：返回值永远是一个字典（成功失败结构一致）；记下第几次才成功；超过上限就停下，不无限重试。</p>
 
+  <pre class="mermaid">
+flowchart TD
+    A["调用工具"] --> B{"成功？"}
+    B -->|"是"| C["返回 ok 与结果"]
+    B -->|"否"| D{"还有重试次数？"}
+    D -->|"有"| E["等一会儿再试"]
+    E --> A
+    D -->|"没有"| F["返回 error 与原因"]
+  </pre>
+  <p>看图要点：只有“没到上限”才回到调用，到了上限就如实报错，不再绕圈。</p>
+
   <h2><span class="sec-no">1.3</span>参数校验放在工具入口 <span class="badge b">B</span></h2>
   <p>模型可能传错东西：把城市传成数字、少传字段。校验放在工具内部，用一句明确的话拒绝，比在后面崩掉好排查。</p>
   <div class="code"><span class="label">tools.py（校验）</span><pre>def get_weather(args):
@@ -254,8 +265,9 @@ reply = payload["choices"][0]["message"]["content"]
 usage = payload["usage"]
 print("回复：", reply)
 print("用量：", usage)</pre></div>
-  <div class="out"><span class="label">实际输出</span><pre>回复： 建议每天 40 分钟。
+  <div class="out"><span class="label">模拟服务返回（用量是写死的假数据）</span><pre>回复： 建议每天 40 分钟。
 用量： {'prompt_tokens': 18, 'completion_tokens': 9}</pre></div>
+  <p>这里的 18 和 9 是本机模拟服务写死的数字，只用来演示格式。真实接口的 <code>usage</code> 来自响应体，由服务商计算，不能拿来对账以外的用途。</p>
   <p><code>prompt_tokens</code> 是你送进去的长度，<code>completion_tokens</code> 是它写出来的长度。两者都计费，所以长 system 提示、长对话历史都会让成本上涨。</p>
 
   <table>
@@ -389,6 +401,17 @@ for score, note in scores[:3]:
   <div class="code"><span class="label">retrieval.py（拼接）</span><pre>context = "\n".join(note for score, note in scores[:2] if score &gt; 0)
 prompt = f"只根据下面的资料回答：\n{context}\n\n问题：{query}"</pre></div>
   <p>“只根据下面的资料回答”这句很关键，否则模型会用自己的知识补充，你就没法判断答案是从笔记来的还是编的。</p>
+
+  <h2><span class="sec-no">4.4</span>真实检索的三步 <span class="badge b">B</span></h2>
+  <p>关键词计数只能做演示。真实检索要先做三件事，缺一件效果就掉：</p>
+  <table>
+    <tr><th>步骤</th><th>做什么</th><th>常见参数</th><th>不做的后果</th></tr>
+    <tr><td>分块</td><td>把长文档切成 200–500 字的片段，相邻块留一点重叠</td><td>重叠 10%–20%</td><td>整篇塞进向量，检索粒度太粗，答非所问</td></tr>
+    <tr><td>向量化</td><td>用 embedding 模型把每块变成向量，存起来</td><td>768 / 1536 维</td><td>用关键词计数，同义改写就召不回来</td></tr>
+    <tr><td>评估</td><td>准备“问题 → 正确片段”的对照表，算 recall@k</td><td>k 取 3–5</td><td>不知道检索好不好，只能感觉“好像还行”</td></tr>
+  </table>
+  <p><code>recall@k</code> 的意思：在 k 条召回结果里，有没有包含那条正确片段。10 个问题里 8 个命中，就是 80%。这个数字比“看起来相关”可靠。</p>
+  <div class="warn"><strong>常见误判。</strong>检索命中但模型答错，是生成的问题；检索没命中却答对，是模型在编。两种情况要分开统计，否则永远不知道该改哪一段。</div>
 
   <table>
     <tr><th>词</th><th>人话</th></tr>
@@ -621,5 +644,5 @@ print("答案：", run(args.goal))</pre></div>
   <p>阶段三教材 · 所有数字来自本机实际运行输出</p>
 </footer>
 </div>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script></body>
 </html>
