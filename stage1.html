@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阶段一 · 计算机基础（教材）</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --bg:#f4f3f0;
+    --ink:#1d1d1b;
+    --ink-soft:#4a4a46;
+    --ink-faint:#7b7b75;
+    --rule:#dcd9d2;
+    --accent:#2f5d46;
+    --accent-soft:#eaf1ec;
+    --code-bg:#f6f4ef;
+    --out-bg:#eef2ee;
+    --warn-bg:#fbf7ea;
+    --warn-rule:#d8c49a;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font:400 16.5px/1.9 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    text-rendering:optimizeLegibility;
+  }
+  .page{max-width:880px;margin:0 auto;background:var(--paper);padding:40px 28px 80px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+  @media (max-width:700px){
+    .page{padding:24px 18px 56px;box-shadow:none}
+    body{font-size:16px;line-height:1.85}
+    .cover-title{font-size:26px;line-height:1.35}
+    .toc .tag{display:none}
+    table{table-layout:fixed}
+    th,td{word-break:break-word;overflow-wrap:anywhere;padding:8px 6px}
+    h1.ch-title{font-size:23px}
+  }
+  h1,h2,h3,.cover-title,.chapter-no{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:600;letter-spacing:.01em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* 封面 */
+  .cover{padding-bottom:28px;border-bottom:2px solid var(--rule);margin-bottom:28px}
+  .cover-kicker{font-size:12.5px;letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase;margin:0 0 10px}
+  .cover-title{font-size:34px;line-height:1.3;margin:0 0 10px}
+  .cover-sub{font-size:17px;color:var(--ink-soft);margin:0 0 18px}
+  .cover-meta{font-size:13.5px;color:var(--ink-faint);line-height:1.9}
+
+  /* 目录 */
+  .toc{margin:0 0 40px;padding:18px 18px 6px;background:var(--accent-soft);border-radius:2px}
+  .toc h2{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  .toc ol{margin:0;padding-left:20px}
+  .toc li{margin:0 0 6px;font-size:14.5px;line-height:1.7}
+  .toc .tag{font-size:11.5px;color:var(--ink-faint);letter-spacing:.04em}
+
+  /* 章 */
+  .chapter{padding-top:8px;margin-bottom:56px}
+  .chapter-head{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:24px}
+  .chapter-no{font-size:13px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;margin:0 0 6px}
+  h1.ch-title{font-size:27px;line-height:1.4;margin:0 0 10px}
+  .chapter-goal{font-size:15px;color:var(--ink-soft);margin:0}
+  h2{font-size:20px;line-height:1.5;margin:40px 0 12px;padding-top:6px}
+  h2 .sec-no{color:var(--accent);margin-right:8px}
+  h3{font-size:16.5px;margin:24px 0 6px}
+  p{margin:0 0 14px}
+  .lead{color:var(--ink-soft)}
+
+  /* 徽标 */
+  .badge{display:inline-block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.1em;padding:4px 8px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-soft);vertical-align:2px;margin-left:8px}
+  .badge.a{border-color:var(--accent);color:var(--accent)}
+  .badge.b{border-color:#b9b39f;color:#7a7259}
+  .badge.c{border-color:#d3d0c8;color:#8b8880}
+
+  /* 代码与输出 */
+  .code,.out{margin:0 0 16px}
+  .code .label,.out .label{display:block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+  pre{margin:0;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;color:#23231f;tab-size:4}
+  .out pre{background:var(--out-bg);border-left-color:#9fb5a6;color:#243a2b}
+
+  /* 提示块 */
+  .note{padding:12px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);margin:0 0 16px;font-size:15px}
+  .warn{padding:12px 16px;border:1px solid var(--warn-rule);background:var(--warn-bg);margin:0 0 16px;font-size:15px}
+  .warn strong{color:#6b4e12}
+  .quiz{margin:0 0 16px;padding:14px 16px;border:1px dashed var(--rule);background:#faf9f6;font-size:15px}
+  .quiz p{margin:0 0 6px}
+  .quiz p:last-child{margin-bottom:0}
+
+  /* 表 */
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px;line-height:1.7}
+  th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f2f0ea;font-weight:600;font-size:13px;letter-spacing:.04em;color:var(--ink-soft)}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* 步骤 */
+  .steps{margin:0 0 16px;padding-left:0;list-style:none;counter-reset:step}
+  .steps li{counter-increment:step;position:relative;padding-left:30px;margin-bottom:10px}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:2px;width:20px;height:20px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:600 12px/20px sans-serif;text-align:center}
+  ul.plain{padding-left:20px;margin:0 0 16px}
+  ul.plain li{margin-bottom:6px}
+
+  /* 练习 */
+  .exercise{border:1px solid var(--rule);padding:16px 18px;margin:20px 0 0}
+  .exercise h3{margin-top:0}
+  .answer{font-size:14.5px;color:var(--ink-soft);margin:10px 0 0}
+
+  .divider{height:1px;background:var(--rule);margin:36px 0}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
+
+  @media print{
+    body{background:#fff;font-size:12pt}
+    .page{box-shadow:none;max-width:none;padding:0}
+    .chapter{page-break-after:always}
+    pre{white-space:pre-wrap}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <p class="cover-kicker">阶段一 · 计算机基础</p>
+  <h1 class="cover-title">从三十道题到六个能跑的小工具</h1>
+  <p class="cover-sub">写给零基础、正在自学的你：每一节都有一个能跑的结果，每一个结论都能在代码里找到出处。</p>
+  <p class="cover-meta">
+    环境：Windows · Python 3.14 · 只用标准库，不装第三方包<br>
+    跑代码前先执行 <code>$env:PYTHONUTF8='1'</code>，并切到对应模块目录<br>
+    课标：<span class="badge a">A</span> 精做，<span class="badge b">B</span> 跑通即可，<span class="badge c">C</span> 看结论就过
+  </p>
+</header>
+
+<nav class="toc" id="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#ch0">第 0 章 词频统计：第一个能用的小工具</a></li>
+    <li><a href="#ch1">第 1 章 数据结构与算法：三十道题的底线</a></li>
+    <li><a href="#ch2">第 2 章 进程与线程：四个工人同时数数</a></li>
+    <li><a href="#ch3">第 3 章 文件与编码：给文件做体检</a></li>
+    <li><a href="#ch4">第 4 章 TCP 与 HTTP：先接通，再说格式</a></li>
+    <li><a href="#ch5">第 5 章 SQLite：把数据留住</a></li>
+    <li><a href="#ch6">第 6 章 日志诊断：用证据回答“为什么失败”</a></li>
+    <li><a href="#appendix">附录：分级总表、术语表、下一步</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ===================== 第 0 章 ===================== -->
+<section class="chapter" id="ch0">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 0</p>
+    <h1 class="ch-title">词频统计：第一个能用的小工具</h1>
+    <p class="chapter-goal">学完能做出：给一段文字，说出每个词出现了几次。约 25 分钟。</p>
+  </div>
+
+  <p>先不谈算法。你手上有一段话，想知道哪个词被提起最多。人眼数一遍会漏，程序不会。</p>
+
+  <h2><span class="sec-no">0.1</span>要解决的那个小问题</h2>
+  <p><code>sandbox/words.txt</code> 里存着一小段英文。你要的输出只有一行：</p>
+  <div class="out"><span class="label">期望输出</span><pre>词频： {'agent': 3, 'tool': 2, 'model': 1}</pre></div>
+  <p>这行的意思：agent 出现 3 次，tool 2 次，model 1 次。字典的键是词，值是个数。</p>
+
+  <h2><span class="sec-no">0.2</span>字典怎么“记数”</h2>
+  <p>你需要的动作只有一个：见到一个词，就把它的计数加一。问题是第一次见到的词，字典里还没有它。</p>
+  <p><code>counts.get(word, 0)</code> 解决这件事：键存在就返回当前值，不存在就返回 0。</p>
+  <table>
+    <tr><th>当前字典</th><th>执行</th><th>之后</th></tr>
+    <tr><td><code>{}</code></td><td><code>counts.get("agent", 0) + 1</code></td><td>得到 1，写回 <code>{"agent": 1}</code></td></tr>
+    <tr><td><code>{"agent": 1}</code></td><td>同上</td><td>得到 2，写回 <code>{"agent": 2}</code></td></tr>
+  </table>
+
+  <h2><span class="sec-no">0.3</span>完整程序</h2>
+  <div class="code"><span class="label">word_counts.py</span><pre>import sys                                      # 读命令行参数、设置退出码
+from pathlib import Path                        # 处理路径
+
+DEFAULT_FILE = Path(__file__).parent / "sandbox" / "words.txt"
+
+
+def count_words(text):                          # 给一段文字，交回每个词的次数
+    counts = {}                                 # 词是键，次数是值
+    for word in text.lower().split():           # 统一小写，再按空白切词
+        counts[word] = counts.get(word, 0) + 1
+    return counts
+
+
+def main():
+    file_path = Path(sys.argv[1]) if len(sys.argv) &gt; 1 else DEFAULT_FILE
+    if not file_path.exists():
+        print("找不到文件：", file_path)
+        sys.exit(1)
+    text = file_path.read_text(encoding="utf-8")
+    print("词频：", count_words(text))
+
+
+if __name__ == "__main__":
+    main()</pre></div>
+
+  <h2><span class="sec-no">0.4</span>跑起来</h2>
+  <div class="code"><span class="label">PowerShell</span><pre>cd "$HOME\Desktop\stage1-data-structures"
+$env:PYTHONUTF8='1'
+python word_counts.py; "exit=$LASTEXITCODE"</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>词频： {'agent': 3, 'tool': 2, 'model': 1}
+exit=0</pre></div>
+  <p>数字跟开头那行对上了，说明程序正确。</p>
+
+  <h2><span class="sec-no">0.5</span>一处改动，看清 <code>lower()</code> 的作用</h2>
+  <p>把 <code>text.lower().split()</code> 改成 <code>text.split()</code>，再跑。如果原文里有 <code>Agent</code> 和 <code>agent</code>，它们会被算成两个词，总数看起来就“变少”了。</p>
+  <p>这个改动不用改别处，只改那一行，观察输出里多出来的大写键。</p>
+
+  <h2><span class="sec-no">0.6</span>容易错的地方</h2>
+  <table>
+    <tr><th>写法</th><th>结果</th><th>为什么</th></tr>
+    <tr><td><code>counts[word] += 1</code></td><td><code>KeyError</code></td><td>第一次见到的词还没有键，不能直接加</td></tr>
+    <tr><td>用 <code>Path("sandbox/words.txt")</code> 从别的目录跑</td><td><code>FileNotFoundError</code></td><td>相对路径相对“当前目录”，不是相对脚本</td></tr>
+  </table>
+
+  <h2><span class="sec-no">0.7</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>（答不上就回到对应小节）：</p>
+    <p>1. 为什么直接写 <code>counts[word] += 1</code> 会报 <code>KeyError</code>？</p>
+    <p>2. 删掉 <code>lower()</code> 之后，输出里哪个数字会变？</p>
+    <p>3. 文件不存在时，程序打印什么、退出码是多少？</p>
+  </div>
+  <ul class="plain">
+    <li><code>dict.get(key, 默认值)</code> 是“没有就当默认值”，计数器的标准写法。</li>
+    <li><code>split()</code> 按任意空白切词，<code>lower()</code> 把大小写合并。</li>
+  </ul>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>写 <code>most_common(text)</code>，返回出现次数最多的词。两个词次数相同时，返回字典序靠前的那个。样例数据应当返回 <code>agent</code>。</p>
+    <p class="answer">思路：先 <code>count_words</code> 得到字典，再用 <code>max(counts, key=counts.get)</code>；要处理并列就按 <code>(-次数, 词)</code> 排序取第一个。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 1 章 ===================== -->
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 1</p>
+    <h1 class="ch-title">数据结构与算法：三十道题的底线</h1>
+    <p class="chapter-goal">学完能做出：解释什么时候该用数组、哈希表、栈、队列、二分，并写出带测试的查找与计数函数。</p>
+  </div>
+
+  <p>三十道题不是为了刷数量。它们覆盖六种结构，每种都要能回答一句“为什么选它”。这一章只精讲两种最容易出错、后面用得最多的：哈希表和二分。其余四种给结论和自测。</p>
+
+  <h2><span class="sec-no">1.1</span>哈希表：用空间换时间 <span class="badge a">A</span></h2>
+  <p>给一串数字和一个目标值，找出两个数加起来等于目标。最笨的办法是每个数都和后面所有数试一遍，n 个数要试 n² 次。哈希表的做法是：一边走，一边记下“还差多少”。</p>
+  <div class="code"><span class="label">hash_tables.py</span><pre>def two_sum(numbers, target):
+    seen = {}                                   # 值 → 下标
+    for index, number in enumerate(numbers):
+        need = target - number                  # 还差多少
+        if need in seen:                        # 之前见过这个“差”
+            return seen[need], index
+        seen[number] = index                    # 记下当前值和下标
+    return None</pre></div>
+
+  <p>拿 <code>[2, 7, 11, 15]</code>、目标 <code>9</code> 走一遍：</p>
+  <table>
+    <tr><th>index</th><th>number</th><th>need</th><th>seen（处理完这一轮）</th><th>动作</th></tr>
+    <tr><td class="num">0</td><td class="num">2</td><td class="num">7</td><td><code>{2:0}</code></td><td>7 没出现过，记下 2</td></tr>
+    <tr><td class="num">1</td><td class="num">7</td><td class="num">2</td><td><code>{2:0, 7:1}</code></td><td>2 出现过，返回 <code>(0, 1)</code></td></tr>
+  </table>
+
+  <div class="warn"><strong>真实踩过的坑。</strong>漏掉 <code>seen[number] = index</code> 这一行，函数永远找不到配对，测试在第六行报 <code>AssertionError</code>。原因是“只查不记”：每一轮都在查，但字典一直是空的。</div>
+
+  <p>这行代码的位置也讲究：先查 <code>need</code>，再记 <code>number</code>。顺序反了，同一个元素可能被用两次。</p>
+
+  <h2><span class="sec-no">1.2</span>二分：每一步砍掉一半 <span class="badge a">A</span></h2>
+  <p>在一本排好序的字典里找词，你不会从第一页翻。二分的动作是：看中间，比目标大就去左半边，小就去右半边。</p>
+  <div class="code"><span class="label">binary_search.py</span><pre>def binary_search(numbers, target):
+    low, high = 0, len(numbers) - 1
+    while low &lt;= high:
+        middle = (low + high) // 2              # 取中间下标
+        if numbers[middle] == target:
+            return middle
+        if numbers[middle] &lt; target:            # 目标在右半边
+            low = middle + 1
+        else:                                   # 目标在左半边
+            high = middle - 1
+    return None                                 # 没找到</pre></div>
+
+  <p><code>[1, 3, 5, 7]</code> 找 <code>5</code>：</p>
+  <table>
+    <tr><th>轮次</th><th>low</th><th>high</th><th>middle</th><th>numbers[middle]</th><th>判断</th></tr>
+    <tr><td class="num">1</td><td class="num">0</td><td class="num">3</td><td class="num">1</td><td class="num">3</td><td>3 &lt; 5，去右半边</td></tr>
+    <tr><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">2</td><td class="num">5</td><td>相等，返回 2</td></tr>
+  </table>
+
+  <div class="warn"><strong>真实踩过的坑。</strong>把 <code>&lt;</code> 写成 <code>&lt;&lt;</code>（位移运算符），程序不报错，却永远返回 <code>None</code>。这类错误的特征是“语法合法、结果不对”，只能靠测试抓。</div>
+
+  <h2><span class="sec-no">1.3</span>链表、栈、队列：三种取法 <span class="badge c">C</span></h2>
+  <p>看结论就过，知道什么时候用、从哪头取，够了。</p>
+  <table>
+    <tr><th>结构</th><th>取法</th><th>典型场景</th></tr>
+    <tr><td>链表</td><td>顺着 next 一个个走，不能按下标跳</td><td>频繁在中间插入、删除</td></tr>
+    <tr><td>栈</td><td>后进先出，<code>pop()</code> 从尾部取</td><td>撤销、括号匹配、函数调用</td></tr>
+    <tr><td>队列</td><td>先进先出，<code>pop(0)</code> 从头部取</td><td>打印任务、消息排队</td></tr>
+  </table>
+  <p>一句话区分：<strong>栈是“最后放的最先拿”，队列是“最先放的最先拿”</strong>。链表的重点不是取，而是“改箭头”：反转链表时，先把下一站存好，再改 <code>current.next</code>，否则链子会断。</p>
+
+  <h2><span class="sec-no">1.4</span>三十道题覆盖了什么</h2>
+  <table>
+    <tr><th>题组</th><th>数量</th><th>考点</th><th>验收方式</th></tr>
+    <tr><td class="num">1–6</td><td class="num">6</td><td>数组遍历、计数、边界</td><td><code>test_arrays_strings.py</code></td></tr>
+    <tr><td class="num">7–12</td><td class="num">6</td><td>哈希表配对、去重</td><td><code>test_hash_tables.py</code></td></tr>
+    <tr><td class="num">13–17</td><td class="num">5</td><td>链表增删、反转、查找</td><td><code>test_linked_lists.py</code></td></tr>
+    <tr><td class="num">18–21</td><td class="num">4</td><td>栈与队列</td><td><code>test_stacks_queues.py</code></td></tr>
+    <tr><td class="num">22–25</td><td class="num">4</td><td>二分查找与边界</td><td><code>test_binary_search.py</code></td></tr>
+    <tr><td class="num">26–30</td><td class="num">5</td><td>双指针、滑动窗口</td><td><code>test_two_pointers.py</code></td></tr>
+  </table>
+  <p>九个测试文件全部 <code>exit=0</code>，这一章才算完成。题目本身留在 <code>01-data-structures-algorithms/README.md</code>，这里不重复。</p>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. <code>two_sum</code> 为什么必须“先查 <code>need</code>，后记 <code>number</code>”？</p>
+    <p>2. 二分里把 <code>&lt;</code> 误写成 <code>&lt;&lt;</code>，运行会报错吗？结果是什么？</p>
+    <p>3. 栈和队列都调 <code>pop</code>，从哪一头取？</p>
+  </div>
+
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>给 <code>two_sum</code> 加一条测试：<code>two_sum([3, 3], 6)</code> 应该返回 <code>(0, 1)</code>，而不是 <code>(0, 0)</code>。想清楚为什么“先查后记”能避免用同一个元素两次。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 2 章 ===================== -->
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 2</p>
+    <h1 class="ch-title">进程与线程：四个工人同时数数</h1>
+    <p class="chapter-goal">学完能做出：用四个线程安全地把计数加到 400；用队列把任务分给工人；知道超时和异常怎么处理。</p>
+  </div>
+
+  <p>你有 400 张图要缩，雇了 4 个工人，每人做 100 张。听起来只是“快四倍”，实际要先解决一件事：四个人往同一个本子上记数，容易互相覆盖。</p>
+
+  <h2><span class="sec-no">2.1</span>四个工人和一个计数器 <span class="badge a">A</span></h2>
+  <p>目标是 400。先看正确的写法，再解释为什么需要锁。</p>
+  <div class="code"><span class="label">thread_queue.py</span><pre>import threading
+
+def count_safely(repeats, workers):
+    state = {"count": 0}                        # 公共账本，所有线程共用
+    lock = threading.Lock()
+
+    def worker():
+        for _ in range(repeats):
+            with lock:                          # 进入时拿锁，离开时自动还
+                state["count"] += 1
+
+    threads = []
+    for _ in range(workers):
+        thread = threading.Thread(target=worker)
+        threads.append(thread)
+    for thread in threads:
+        thread.start()                          # 四个一起开工
+    for thread in threads:
+        thread.join()                           # 等四个都收工
+    return state["count"]</pre></div>
+
+  <div class="code"><span class="label">test_thread_queue.py</span><pre>from thread_queue import count_safely
+
+assert count_safely(100, 4) == 400
+print("通过 1：四个线程合计加了 400 次")</pre></div>
+
+  <div class="out"><span class="label">实际输出</span><pre>通过 1：四个线程合计加了 400 次
+exit=0</pre></div>
+
+  <p>三件事要能对着代码指出来：</p>
+  <ul class="plain">
+    <li><code>state</code> 是字典不是普通变量。普通变量在内层函数里赋值会变成“局部副本”，改不到外面。</li>
+    <li><code>start()</code> 是发令枪，立刻返回；<code>join()</code> 是等收工。两个循环分开写，才是“同时开工”。</li>
+    <li><code>with lock</code> 把“读—加一—写回”三步包成一段，一次只放一个工人进来。</li>
+  </ul>
+
+  <h2><span class="sec-no">2.2</span>不加锁会怎样：1 而不是 2 <span class="badge b">B</span></h2>
+  <p>普通 <code>+= 1</code> 太快，两个线程不一定撞上。用 <code>Barrier</code> 强制“两人都先读完，再一起写”，这个 bug 就每次必现。</p>
+  <div class="code"><span class="label">thread_queue.py</span><pre>def demonstrate_lost_update():
+    state = {"count": 0}
+    both_read = threading.Barrier(2)            # 两人到齐才放行
+
+    def worker():
+        old_value = state["count"]              # 两人都读到 0
+        both_read.wait()
+        state["count"] = old_value + 1          # 两人都写 1
+
+    first = threading.Thread(target=worker)
+    second = threading.Thread(target=worker)
+    first.start()
+    second.start()
+    first.join()
+    second.join()
+    return state["count"]                       # 结果是 1</pre></div>
+
+  <table>
+    <tr><th>时刻</th><th>工人 A</th><th>工人 B</th><th>本子</th></tr>
+    <tr><td class="num">1</td><td>读到 0</td><td>—</td><td class="num">0</td></tr>
+    <tr><td class="num">2</td><td>在 barrier 等</td><td>读到 0</td><td class="num">0</td></tr>
+    <tr><td class="num">3</td><td>写 0+1</td><td>放行</td><td class="num">1</td></tr>
+    <tr><td class="num">4</td><td>—</td><td>写 0+1（用它自己记的 0）</td><td class="num">1</td></tr>
+  </table>
+
+  <p>测试写 <code>== 1</code>，不是因为它正确，而是因为它证明 bug 被稳定复现。正确结果本该是 2。</p>
+  <div class="warn"><strong>别把 <code>both_read.wait()</code> 放进锁里。</strong>A 拿着锁等人到齐，B 又进不来拿锁，两边永久卡住。</div>
+
+  <h2><span class="sec-no">2.3</span>用队列交任务 <span class="badge a">A</span></h2>
+  <p>与其让多个线程抢同一堆变量，不如让他们从队列里取任务。队列自己管顺序。</p>
+  <div class="code"><span class="label">thread_queue.py</span><pre>import queue
+
+def process_tasks(tasks):
+    jobs = queue.Queue()
+    results = []
+    for task in tasks:
+        jobs.put(task)
+    jobs.put(None)                              # 收工信号
+
+    def worker():
+        while True:
+            task = jobs.get()
+            if task is None:
+                jobs.task_done()
+                break
+            results.append(task.upper())        # 注意缩进：在 if 之后
+            jobs.task_done()
+
+    thread = threading.Thread(target=worker)
+    thread.start()
+    jobs.join()
+    thread.join()
+    return results</pre></div>
+
+  <table>
+    <tr><th>执行到的代码</th><th>队列里剩</th><th>results</th></tr>
+    <tr><td><code>jobs.put("c")</code></td><td>a, b, c</td><td><code>[]</code></td></tr>
+    <tr><td><code>jobs.put(None)</code></td><td>a, b, c, None</td><td><code>[]</code></td></tr>
+    <tr><td><code>task = jobs.get()</code></td><td>b, c, None</td><td><code>[]</code>，拿到 a</td></tr>
+    <tr><td><code>results.append(task.upper())</code></td><td>b, c, None</td><td><code>[A]</code></td></tr>
+    <tr><td>取到 b，转成 B</td><td>c, None</td><td><code>[A, B]</code></td></tr>
+    <tr><td>取到 c，转成 C</td><td>None</td><td><code>[A, B, C]</code></td></tr>
+    <tr><td>取到 None，<code>break</code></td><td>空</td><td>不变</td></tr>
+  </table>
+
+  <div class="warn"><strong>真实踩过的坑。</strong><code>results.append</code> 少缩进 4 格，就落到 <code>while</code> 外面，只执行一次，拿到的还是 <code>None</code>：<code>AttributeError: 'NoneType' object has no attribute 'upper'</code>。同时 <code>task_done()</code> 少调用，<code>jobs.join()</code> 永远等不完，程序卡住。</div>
+
+  <h2><span class="sec-no">2.4</span>停止、超时、异常 <span class="badge b">B</span></h2>
+  <p>工人不能永远等，坏任务也不能让队列静默死掉。</p>
+  <div class="code"><span class="label">thread_queue.py</span><pre>def process_tasks_with_status(tasks):
+    jobs = queue.Queue()
+    results = []
+    for task in tasks:
+        jobs.put(task)
+    jobs.put(None)
+
+    def worker():
+        while True:
+            task = jobs.get()
+            if task is None:
+                jobs.task_done()
+                break
+            try:                                # try 放在工人内部
+                if task == "boom":
+                    raise ValueError("bad task")
+                results.append({"task": task, "status": "ok", "result": task.upper()})
+            except Exception as error:
+                results.append({"task": task, "status": "error", "reason": str(error)})
+            jobs.task_done()
+
+    thread = threading.Thread(target=worker)
+    thread.start()
+    jobs.join()
+    thread.join()
+    return results</pre></div>
+
+  <p><code>["a", "boom"]</code> 的预期结果有两条：第一条 <code>ok / A</code>，第二条 <code>error / bad task</code>。跑出来对照，不要只看有没有报错。</p>
+
+  <p>超时那条：<code>join(timeout=0.1)</code> 只决定等多久，不会杀死线程。<code>is_alive()</code> 返回 <code>True</code> 说明它还在跑，之后要用 <code>release.set()</code> 让它自己走到终点。</p>
+
+  <h2><span class="sec-no">2.5</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 四个线程各加 100 次，不加锁为什么可能不是 400？</p>
+    <p>2. <code>start()</code> 和 <code>join()</code> 各做什么？</p>
+    <p>3. <code>task_done()</code> 少调用一次，程序会怎样？</p>
+  </div>
+  <table>
+    <tr><th>现象</th><th>原因</th><th>处理</th></tr>
+    <tr><td>结果少了一次</td><td>两个线程读了同一个旧值</td><td>读改写整段加锁</td></tr>
+    <tr><td>程序卡住不结束</td><td><code>task_done()</code> 次数和入队数不一致</td><td>每个任务都调一次，包括 <code>None</code></td></tr>
+    <tr><td>坏任务后工人消失</td><td><code>try</code> 写在了循环外面</td><td>挪进 <code>worker</code> 内部</td></tr>
+  </table>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>把 <code>count_safely</code> 的 <code>with lock</code> 删掉，多跑几次。你可能看到 400，也可能看到 399 或 397。这就是竞态：结果取决于谁先跑。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 3 章 ===================== -->
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 3</p>
+    <h1 class="ch-title">文件与编码：给文件做体检</h1>
+    <p class="chapter-goal">学完能做出：给出任意文本文件的字节数、行数、非空行数，并分清“不存在、空文件、编码错”三种情况。</p>
+  </div>
+
+  <p>手上有 20 个日志文件，别人问哪个是空的、哪个只有几行。一个个点开数不现实，让程序跑一遍。</p>
+
+  <h2><span class="sec-no">3.1</span>三个数字，一步一步算 <span class="badge b">B</span></h2>
+  <p><code>sandbox/sample.txt</code> 的内容是 <code>alpha</code>、一个空行、<code>beta</code>。肉眼能数出 3 行、2 行有内容，但“占多少字节”数不出来。</p>
+  <div class="code"><span class="label">在 03-memory-filesystem 目录里打开 REPL</span><pre>from pathlib import Path
+
+p = Path("sandbox/sample.txt")
+print(len(p.read_bytes()))                      # 12
+print(repr(p.read_text(encoding="utf-8")))      # 'alpha\n\nbeta\n'
+print(len(p.read_text(encoding="utf-8").splitlines()))   # 3</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>12
+'alpha\n\nbeta\n'
+3</pre></div>
+  <p>12 字节 = <code>alpha</code>(5) + 换行(1) + 空行(1) + <code>beta</code>(4) + 末尾换行(1)。最后那个换行你看不见，但它占 1 字节。</p>
+
+  <p>装成函数就是你要的工具：</p>
+  <div class="code"><span class="label">file_report.py</span><pre>from pathlib import Path
+
+def report(path):
+    file_path = Path(path)
+    text = file_path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    return {"bytes": file_path.stat().st_size,
+            "lines": len(lines),
+            "nonempty": sum(1 for line in lines if line.strip())}</pre></div>
+  <div class="out"><span class="label">调用结果</span><pre>{'bytes': 12, 'lines': 3, 'nonempty': 2}</pre></div>
+
+  <h2><span class="sec-no">3.2</span>逐行读：大文件不塞进内存 <span class="badge b">B</span></h2>
+  <p><code>read_text()</code> 把整份文件变成一个字符串。文件几 GB 时这会吃掉大量内存。逐行读每次只拿一行。</p>
+  <div class="code"><span class="label">file_report.py</span><pre>def count_file_lines(path):
+    total = 0
+    nonempty = 0
+    with Path(path).open(encoding="utf-8") as file:
+        for line in file:
+            total += 1
+            if line.strip():
+                nonempty += 1
+    return total, nonempty</pre></div>
+  <table>
+    <tr><th>读到的行</th><th>total</th><th>nonempty</th></tr>
+    <tr><td>alpha</td><td class="num">1</td><td class="num">1</td></tr>
+    <tr><td>（空行）</td><td class="num">2</td><td class="num">1</td></tr>
+    <tr><td>beta</td><td class="num">3</td><td class="num">2</td></tr>
+  </table>
+  <p>结果必须和 3.1 的 <code>len(lines)</code>、<code>nonempty</code> 一致，否则就是两种算法有一边错了。</p>
+
+  <h2><span class="sec-no">3.3</span>三种错误，三个状态 <span class="badge a">A</span></h2>
+  <p>缺失文件、空文件、编码不对，是三件事。把它们混成一个“读取失败”，后面排查就没法定位。</p>
+  <div class="code"><span class="label">file_report.py</span><pre>def safe_report(path):
+    file_path = Path(path)
+    if not file_path.exists():
+        return {"status": "missing", "path": str(file_path)}
+    try:
+        total, nonempty = count_file_lines(file_path)
+    except UnicodeDecodeError:
+        return {"status": "decode_error", "path": str(file_path)}
+    return {"status": "ok", "lines": total, "nonempty": nonempty}</pre></div>
+  <table>
+    <tr><th>输入</th><th>返回</th><th>说明</th></tr>
+    <tr><td>不存在的路径</td><td><code>{"status":"missing"}</code></td><td>先查存在，不打开</td></tr>
+    <tr><td>0 字节的文件</td><td><code>{"status":"ok","lines":0,"nonempty":0}</code></td><td>空是正常输入，不是错误</td></tr>
+    <tr><td>GBK 编码的文件</td><td><code>{"status":"decode_error"}</code></td><td>读不出来要如实报</td></tr>
+  </table>
+
+  <h2><span class="sec-no">3.4</span>路径与编码：两条结论 <span class="badge c">C</span></h2>
+  <p>一，用 <code>Path(__file__).parent / "sandbox" / "sample.txt"</code> 拼路径，不管你从哪个目录启动，都指向同一份文件。用 <code>Path("sandbox/sample.txt")</code> 就跟着“当前目录”跑，换个目录就找不到。</p>
+  <p>二，读写文本永远写死 <code>encoding="utf-8"</code>。中文一个字符占 3 字节，所以字节数和字符数不相等：<code>你好</code> 是 6 字节、2 字符。Windows 默认编码可能是 GBK，不写死就会乱码或报 <code>UnicodeDecodeError</code>。</p>
+
+  <h2><span class="sec-no">3.5</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. <code>alpha</code> 三行的文件为什么是 12 字节？</p>
+    <p>2. 空文件返回什么状态？它算错误吗？</p>
+    <p>3. 为什么拼路径要用 <code>__file__</code>，而不是直接写相对路径？</p>
+  </div>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>写 <code>report_all(directory)</code>，目录里每个 <code>.txt</code> 打印一行 <code>文件名 字节 行数 非空行</code>。样例目录输出应为 <code>sample.txt 12 3 2</code>。</p>
+    <p class="answer">提示：<code>sorted(Path(directory).glob("*.txt"))</code> 给出稳定顺序；每项调用一次 <code>report()</code>。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 4 章 ===================== -->
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 4</p>
+    <h1 class="ch-title">TCP 与 HTTP：先接通，再说格式</h1>
+    <p class="chapter-goal">学完能做出：在本机跑一个回声服务端和客户端；分清“对方拒绝”和“等到超时”；说清 HTTP 和 TCP 的关系。</p>
+  </div>
+
+  <p>把网络想成打电话：服务端守在一个号码旁边等人拨进来，客户端拨号，接通后双方发字节，最后挂断。这一章只做本机通话，不碰外网。</p>
+
+  <h2><span class="sec-no">4.1</span>收什么就回什么 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">echo_server.py</span><pre>import socket
+
+def echo_once(connection):
+    while True:
+        data = connection.recv(1024)            # 最多收 1024 字节
+        if not data:                            # 空 bytes：对方关了发送
+            break
+        connection.sendall(data)                # 原样发回去
+
+def serve_once(host="127.0.0.1", port=18080):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((host, port))
+        server.listen(1)
+        print("listening", host, port)
+        connection, address = server.accept()   # 等到有人打进来
+        print("connected", address)
+        with connection:
+            echo_once(connection)
+
+if __name__ == "__main__":
+    serve_once()</pre></div>
+
+  <div class="code"><span class="label">echo_client.py</span><pre>import socket
+
+with socket.create_connection(("127.0.0.1", 18080), timeout=3) as client:
+    client.sendall("你好，TCP".encode("utf-8"))   # 12 字节
+    client.shutdown(socket.SHUT_WR)               # 我这边不再发送
+    reply = client.recv(1024)
+    print(reply.decode("utf-8"))</pre></div>
+
+  <p>开两个 PowerShell 窗口，都是先 <code>$env:PYTHONUTF8='1'</code> 再 <code>cd</code> 到 <code>04-tcp-http</code>。A 窗口跑服务端，看到下面这行之后，B 窗口跑客户端。</p>
+  <div class="out"><span class="label">服务端先输出</span><pre>listening 127.0.0.1 18080</pre></div>
+  <div class="out"><span class="label">客户端实际输出</span><pre>你好，TCP
+exit=0</pre></div>
+  <p>服务端随后还会打印一行 <code>connected (...)</code>，括号里是客户端地址，端口每次不同，不用对上具体数字。</p>
+
+  <table>
+    <tr><th>动作</th><th>谁在做</th><th>含义</th></tr>
+    <tr><td><code>bind</code> + <code>listen</code></td><td>服务端</td><td>占住 18080，开始等</td></tr>
+    <tr><td><code>accept</code></td><td>服务端</td><td>阻塞，直到有人连上</td></tr>
+    <tr><td><code>sendall</code></td><td>双方</td><td>把整段字节送出去</td></tr>
+    <tr><td><code>shutdown(SHUT_WR)</code></td><td>客户端</td><td>只关发送方向，还能收</td></tr>
+    <tr><td><code>recv</code> 返回 <code>b""</code></td><td>服务端</td><td>对方不会再发了，可以退出</td></tr>
+  </table>
+
+  <h2><span class="sec-no">4.2</span>连不上和等太久，不是一回事 <span class="badge a">A</span></h2>
+  <p>把客户端端口改成 <code>18081</code>（没有服务端在听），再跑。3 秒内就会报错：</p>
+  <div class="out"><span class="label">实际输出</span><pre>连接失败： [WinError 10061] 由于目标计算机积极拒绝，无法连接。</pre></div>
+  <table>
+    <tr><th>错误</th><th>含义</th><th>处理</th></tr>
+    <tr><td>10061 拒绝</td><td>对方端口没开，明确不接</td><td>先确认服务端在不在，别盲目重试</td></tr>
+    <tr><td>TimeoutError</td><td>对方一直没回应</td><td>可以有限次重试</td></tr>
+    <tr><td><code>gaierror</code></td><td>域名解析不了</td><td>检查地址拼写</td></tr>
+  </table>
+  <div class="warn"><strong>不要在 <code>except</code> 里写“成功”。</strong>接住错误是为了如实报告，不是假装没发生。</div>
+
+  <h2><span class="sec-no">4.3</span>HTTP 只是套了格式的 TCP <span class="badge b">B</span></h2>
+  <p>TCP 只管把字节送到，不管这些字节是什么意思。HTTP 规定这些字节怎么排：请求行、头部、空行、正文；响应里还要有状态码。</p>
+  <div class="code"><span class="label">本机 HTTP 演示</span><pre>from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading, urllib.request
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write("pong".encode("utf-8"))
+    def log_message(self, *args):
+        pass
+
+server = HTTPServer(("127.0.0.1", 18082), Handler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+
+with urllib.request.urlopen("http://127.0.0.1:18082/", timeout=3) as response:
+    print("状态码：", response.status)
+    print("响应体：", response.read().decode("utf-8"))
+
+server.shutdown()</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>状态码： 200
+响应体： pong</pre></div>
+  <p><code>urllib</code> 替你做了三件事：建 TCP 连接、按 HTTP 格式写请求、按 HTTP 格式解析响应。它没有换掉 TCP，只是在 TCP 上按约定说话。</p>
+
+  <h2><span class="sec-no">4.4</span>socketpair：不用端口的测试 <span class="badge c">C</span></h2>
+  <p><code>socket.socketpair()</code> 造一对天生连着的端点，等于电话已经接通，所以测试不用占端口、不用等。把 <code>server_end</code> 交给 <code>echo_once</code> 在另一线程跑，主线程从 <code>client_end</code> 发 <code>b"hello"</code>，收到同样的 5 个字节，断言相等就完事。细节留给 <code>04-tcp-http/README.md</code>。</p>
+
+  <h2><span class="sec-no">4.5</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 10061 和 <code>TimeoutError</code> 分别代表什么情况？</p>
+    <p>2. <code>shutdown(SHUT_WR)</code> 关掉的是哪个方向？</p>
+    <p>3. 状态码 200 是 TCP 规定的，还是 HTTP 规定的？</p>
+  </div>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>先启动服务端，再让客户端连续发两条消息（第二条在 <code>shutdown</code> 之前）。观察服务端收到几次、回了几次。再试试客户端直接断开（不调用 <code>shutdown</code>），服务端会怎样。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 5 章 ===================== -->
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 5</p>
+    <h1 class="ch-title">SQLite：把数据留住</h1>
+    <p class="chapter-goal">学完能做出：一个参数化的待办数据层，会建表、增删改查、用事务保证“要么全成功”，并说清索引影响什么。</p>
+  </div>
+
+  <p>程序退出后变量就消失。数据库把数据写进文件，下次启动还能读。这一章用 Python 自带的 <code>sqlite3</code>，不装库、不启服务。</p>
+
+  <h2><span class="sec-no">5.1</span>建表、加一条、读回来 <span class="badge b">B</span></h2>
+  <div class="code"><span class="label">todo_db.py</span><pre>import sqlite3
+
+def create_table(connection):
+    connection.execute("CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, text TEXT, done INTEGER)")
+
+def add_task(connection, text):
+    cursor = connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", (text, 0))
+    connection.commit()
+    return cursor.lastrowid
+
+def list_tasks(connection):
+    cursor = connection.execute("SELECT id, text, done FROM tasks ORDER BY id")
+    return cursor.fetchall()</pre></div>
+  <div class="code"><span class="label">test_todo_db.py</span><pre>import sqlite3
+from todo_db import create_table, add_task, list_tasks
+
+connection = sqlite3.connect(":memory:")         # 只在内存里，退出就没了
+create_table(connection)
+number = add_task(connection, "learn SQL")
+print(number, list_tasks(connection))</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>1 [(1, 'learn SQL', 0)]</pre></div>
+  <p>插入前表是空的 <code>[]</code>，插入后是一行 <code>(1, 'learn SQL', 0)</code>。<code>id</code> 由数据库分配，<code>done</code> 用 0/1 表示未完成/完成。</p>
+
+  <h3>SQL 每个词是什么意思</h3>
+  <p>SQL 不是魔法咒语，它是一句有固定语序的指令。把上面出现的语句拆开看：</p>
+  <table>
+    <tr><th>片段</th><th>读法</th><th>作用</th></tr>
+    <tr><td><code>CREATE TABLE IF NOT EXISTS tasks</code></td><td>建表；已有同名表就跳过</td><td>表是数据的一层“容器”，先有表才能插行</td></tr>
+    <tr><td><code>(id INTEGER PRIMARY KEY, text TEXT, done INTEGER)</code></td><td>括号里三列：整数主键、文本、整数</td><td>列名、类型、约束，用逗号隔开</td></tr>
+    <tr><td><code>INSERT INTO tasks(text, done)</code></td><td>往 tasks 表的这两列插入</td><td>没写的列用默认值（<code>id</code> 自动递增）</td></tr>
+    <tr><td><code>VALUES (?, ?)</code></td><td>两个值先用问号占位</td><td>真实值由 <code>execute</code> 的第二个参数按顺序填</td></tr>
+    <tr><td><code>SELECT id, text, done</code></td><td>我要这三列</td><td>列的书写顺序 = 返回元组的顺序</td></tr>
+    <tr><td><code>FROM tasks ORDER BY id</code></td><td>从 tasks 表，按 id 升序</td><td>不加 <code>ORDER BY</code>，顺序由数据库自己决定</td></tr>
+    <tr><td><code>UPDATE tasks SET done = 1</code></td><td>把 done 这一列改成 1</td><td>只改你指定的列</td></tr>
+    <tr><td><code>WHERE id = ?</code></td><td>只对 id 等于这个值的行动手</td><td>省略 <code>WHERE</code> 就是改整张表</td></tr>
+    <tr><td><code>DELETE FROM tasks WHERE id = ?</code></td><td>删掉 id 等于这个值的那行</td><td>省略 <code>WHERE</code> 就是清空整张表</td></tr>
+    <tr><td><code>CREATE INDEX ... ON tasks(text)</code></td><td>给 tasks 的 text 列建一份“目录”</td><td>只影响查找快慢，不改任何一行数据</td></tr>
+  </table>
+
+  <p><code>connection.execute(...)</code> 交回一个 <code>cursor</code>（光标），你从它身上取三样东西：</p>
+  <table>
+    <tr><th>取法</th><th>拿到什么</th><th>用在哪</th></tr>
+    <tr><td><code>cursor.fetchall()</code></td><td>查询结果的全部行，每行是一个元组</td><td>读数据</td></tr>
+    <tr><td><code>cursor.lastrowid</code></td><td>刚插入那行的 <code>id</code></td><td>插入后要知道新编号</td></tr>
+    <tr><td><code>cursor.rowcount</code></td><td>这次改/删了几行（可能是 0）</td><td>判断“有没有真的动到数据”</td></tr>
+  </table>
+  <p><code>with connection:</code> 是事务开关：块里全部成功就提交，中途抛异常就回滚。</p>
+
+  <h2><span class="sec-no">5.2</span>参数化：别把用户文字拼进 SQL <span class="badge a">A</span></h2>
+  <p>待办内容带单引号时，拼接会直接把 SQL 弄坏。</p>
+  <table>
+    <tr><th>写法</th><th>实际生成的 SQL</th><th>结果</th></tr>
+    <tr><td>f-string 拼接</td><td><code>VALUES ('Bob's task', 0)</code></td><td>数据库认为字符串在 Bob 处结束，报语法错误</td></tr>
+    <tr><td><code>VALUES (?, ?)</code></td><td>SQL 与值分开传</td><td>整段文字当一个值，读回一字不差</td></tr>
+  </table>
+  <p>除了能存进去，参数化还挡住 SQL 注入：用户输入永远只是数据，不会被当成指令。</p>
+
+  <h2><span class="sec-no">5.3</span>事务：两条要么都在，要么都不在 <span class="badge a">A</span></h2>
+  <div class="code"><span class="label">test_todo_db.py</span><pre>try:
+    with connection:                             # 成功自动提交，异常自动回滚
+        connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", ("A", 0))
+        connection.execute("INSERT INTO tasks(no_such_column) VALUES (?)", ("B",))
+except sqlite3.OperationalError:
+    pass
+
+print([row for row in list_tasks(connection) if row[1] == "A"])</pre></div>
+  <div class="out"><span class="label">实际输出</span><pre>[]</pre></div>
+  <p>第二条写错列，抛异常，连第一条 <code>A</code> 也一起撤回。表里没有“只写了一半”的状态。</p>
+  <div class="warn"><strong>别用 <code>add_task()</code> 做事务实验。</strong>它每次都自带 <code>commit()</code>，等于每一步都落盘，回滚不了。</div>
+
+  <h2><span class="sec-no">5.4</span>索引：改的是找法，不是结果 <span class="badge b">B</span></h2>
+  <div class="code"><span class="label">todo_db.py</span><pre>def create_text_index(connection):
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_tasks_text ON tasks(text)")
+    connection.commit()</pre></div>
+  <p>建索引前后，<code>list_tasks()</code> 的返回值必须完全一致。样例只有几行，测不出可靠的速度差，所以验收方式是“结果不变”，不是“快了多少”。索引占额外空间，插入和更新时还要维护。</p>
+
+  <h2><span class="sec-no">5.5</span>改和删：看 <code>rowcount</code> <span class="badge c">C</span></h2>
+  <p><code>UPDATE</code> 和 <code>DELETE</code> 都返回 <code>cursor.rowcount</code>，表示这次动了几行。编号存在是 1，不存在是 0。0 就是“什么都没改”，不要当成成功。写法只有一处不同：<code>(task_id,)</code> 里的逗号不能省，它才是单元素元组。</p>
+
+  <h2><span class="sec-no">5.6</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 为什么 <code>?</code> 比 f-string 拼接安全？</p>
+    <p>2. 事务里第二条失败后，第一条还在表里吗？</p>
+    <p>3. 建索引会改变查询结果吗？</p>
+  </div>
+  <table>
+    <tr><th>词</th><th>作用</th></tr>
+    <tr><td><code>PRIMARY KEY</code></td><td>每行的唯一编号，SQLite 里自动递增</td></tr>
+    <tr><td><code>WHERE</code></td><td>只对满足条件的行动手</td></tr>
+    <tr><td><code>?</code></td><td>值的占位符，值和 SQL 分开传</td></tr>
+    <tr><td><code>commit</code> / <code>rollback</code></td><td>落实修改 / 撤回整组修改</td></tr>
+  </table>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>给待办加一个 <code>priority</code> 列（默认 0），写 <code>set_priority(connection, task_id, level)</code>，再用事务一次改两条。故意让第二条失败，确认第一条也回滚。</p>
+  </div>
+</section>
+
+<!-- ===================== 第 6 章 ===================== -->
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 6</p>
+    <h1 class="ch-title">日志诊断：用证据回答“为什么失败”</h1>
+    <p class="chapter-goal">学完能做出：读一份离线日志，回答请求有没有到达、哪一步失败、耗时多少、能不能重试。</p>
+  </div>
+
+  <p>“请求好像卡了”不是结论。拿证据要回答四件事：开始了没有、在哪结束、失败原因、耗时多少。这一章用一份离线日志，不发请求。</p>
+
+  <h2><span class="sec-no">6.1</span>把一行文字变成可查询的结构 <span class="badge b">B</span></h2>
+  <p><code>sandbox/events.log</code> 每行是 <code>时间 request_id 级别 事件</code>，共四行：</p>
+  <div class="out"><span class="label">日志原文</span><pre>0.0 r1 INFO start
+1.25 r1 ERROR timeout
+1.5 r2 INFO start
+2.0 r2 INFO finish</pre></div>
+  <p>解析要做的事：切四段、时间转数字、装进字典。切不出四段或时间不是数字的行，计入 <code>bad_lines</code>，不能静默丢掉。</p>
+  <div class="code"><span class="label">diagnose_request.py</span><pre>from pathlib import Path
+
+def load_events(path):
+    events = []
+    bad_lines = 0
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        parts = line.split(maxsplit=3)
+        if len(parts) != 4:
+            bad_lines += 1
+            continue
+        try:
+            events.append({"time": float(parts[0]), "request_id": parts[1],
+                           "level": parts[2], "event": parts[3]})
+        except ValueError:
+            bad_lines += 1
+    return events, bad_lines</pre></div>
+
+  <h2><span class="sec-no">6.2</span>失败要分类，还要说能不能重试 <span class="badge a">A</span></h2>
+  <p>同样叫“失败”，处理方式不一样：超时可以再试，404 再试还是 404。</p>
+  <table>
+    <tr><th>错误</th><th>含义</th><th><code>retryable</code></th></tr>
+    <tr><td><code>timeout</code></td><td>等太久没回应</td><td><code>True</code></td></tr>
+    <tr><td><code>connection_refused</code></td><td>对方端口没开</td><td><code>True</code></td></tr>
+    <tr><td><code>http_404</code></td><td>地址不存在</td><td><code>False</code></td></tr>
+    <tr><td><code>http_500</code></td><td>服务端内部错误</td><td><code>True</code></td></tr>
+    <tr><td>没见过的事件名</td><td>没有依据</td><td><code>None</code></td></tr>
+  </table>
+  <div class="code"><span class="label">diagnose_request.py</span><pre>RETRYABLE = {"timeout", "connection_refused"}
+NOT_RETRYABLE = {"http_404", "json_parse"}
+
+def classify(error_event):
+    name = error_event["event"]
+    if name.startswith("http_"):
+        code = int(name.split("_")[1])
+        retryable = code &gt;= 500 or code == 408
+    elif name in RETRYABLE:
+        retryable = True
+    elif name in NOT_RETRYABLE or name.startswith("json"):
+        retryable = False
+    else:
+        retryable = None
+    return {"reason": name, "retryable": retryable}</pre></div>
+  <p>三态必须分清，比较时用 <code>is True</code> / <code>is False</code>，不能用 <code>==</code> 糊过去。</p>
+
+  <h2><span class="sec-no">6.3</span>诊断与汇总 <span class="badge b">B</span></h2>
+  <p>对每个 <code>request_id</code>：先筛出它的事件，按时间排序；有 <code>ERROR</code> 就是失败，否则必须同时有 <code>start</code> 和 <code>finish</code> 才能算耗时，缺一个就返回 <code>unknown</code>。</p>
+  <div class="code"><span class="label">diagnose_request.py</span><pre>def diagnose(events, request_id):
+    selected = [e for e in events if e["request_id"] == request_id]
+    if not selected:
+        return {"status": "unknown", "reason": "request not found"}
+    selected.sort(key=lambda e: e["time"])
+    errors = [e for e in selected if e["level"] == "ERROR"]
+    if errors:
+        info = classify(errors[0])
+        return {"status": "failed", "reason": info["reason"], "retryable": info["retryable"]}
+    starts = [e for e in selected if e["event"] == "start"]
+    finishes = [e for e in selected if e["event"] == "finish"]
+    if not starts or not finishes:
+        return {"status": "unknown", "reason": "incomplete trace"}
+    return {"status": "ok", "duration": round(finishes[-1]["time"] - starts[0]["time"], 3)}</pre></div>
+  <div class="out"><span class="label">样例诊断结果</span><pre>r1: 失败于 timeout，可重试
+r2: 成功，耗时 0.5 秒</pre></div>
+  <p><code>0.5</code> 来自 <code>2.0 - 1.5</code>，不是估的。所有请求汇总时，先把编号去重（<code>{event["request_id"] for event in events}</code>），再排序，输出顺序才稳定。</p>
+
+  <h2><span class="sec-no">6.4</span>坏行必须计数 <span class="badge c">C</span></h2>
+  <p>拿三行坏日志试：一行正常、一行字段数不对、一行时间不是数字。正确结果是“解析成功 1 条、坏行 2 条”。跳过坏行而不计数，你会在“少了几条记录”时毫无察觉。</p>
+
+  <h2><span class="sec-no">6.5</span>小结与练习</h2>
+  <div class="quiz">
+    <p><strong>自测三问</strong>：</p>
+    <p>1. 什么情况下返回 <code>unknown</code>？</p>
+    <p>2. <code>retryable</code> 为 <code>None</code> 时，报告里怎么写？</p>
+    <p>3. 坏行为什么要计数，而不是直接跳过？</p>
+  </div>
+  <div class="exercise">
+    <h3>练习</h3>
+    <p>给日志加一行 <code>2.3 r3 ERROR http_500</code>，重跑汇总。它应该被判为失败且可重试。再改成一个你没定义过的事件名，确认返回 <code>None</code>，而不是猜。</p>
+  </div>
+</section>
+
+<!-- ===================== 附录 ===================== -->
+<section class="chapter" id="appendix">
+  <div class="chapter-head">
+    <p class="chapter-no">Appendix</p>
+    <h1 class="ch-title">附录：分级总表、术语、下一步</h1>
+  </div>
+
+  <h2><span class="sec-no">A.1</span>各课分级</h2>
+  <table>
+    <tr><th>模块</th><th>A 精做</th><th>B 跑通</th><th>C 看结论</th></tr>
+    <tr><td>02 线程</td><td>锁、队列</td><td>丢更新、超时与异常</td><td>—</td></tr>
+    <tr><td>03 文件</td><td>三种错误状态</td><td>报告、逐行读</td><td>路径、编码</td></tr>
+    <tr><td>04 TCP</td><td>Echo、连接失败</td><td>HTTP 与 TCP</td><td>socketpair</td></tr>
+    <tr><td>05 SQLite</td><td>参数化、事务</td><td>建表增查、索引</td><td>改删</td></tr>
+    <tr><td>06 日志</td><td>失败分类</td><td>解析、汇总</td><td>坏行、报告</td></tr>
+  </table>
+
+  <h2><span class="sec-no">A.2</span>术语表</h2>
+  <table>
+    <tr><th>词</th><th>一句话</th></tr>
+    <tr><td>进程 / 线程</td><td>进程有自己的一块空间；线程共享同一块空间，所以会互相改数据</td></tr>
+    <tr><td>竞态</td><td>结果取决于多个线程谁先跑，可能出现丢更新</td></tr>
+    <tr><td>锁</td><td>一次只允许一个线程进入某段代码</td></tr>
+    <tr><td>队列</td><td>先进先出，任务从队尾进、队头出</td></tr>
+    <tr><td>字节 / 字符</td><td>字节是存储单位；字符是你看得见的单位，一个汉字 3 字节</td></tr>
+    <tr><td>TCP</td><td>负责把字节可靠送到，不管内容含义</td></tr>
+    <tr><td>HTTP</td><td>规定这些字节怎么排：请求行、头部、正文、状态码</td></tr>
+    <tr><td>事务</td><td>一组写入，要么全提交，要么全回滚</td></tr>
+    <tr><td>索引</td><td>先查目录再定位行，只影响快慢，不影响结果</td></tr>
+    <tr><td>幂等 / 重试</td><td>同一请求再做一次结果不变；超时和 5xx 可以试，404 不必</td></tr>
+  </table>
+
+  <h2><span class="sec-no">A.3</span>运行环境</h2>
+  <div class="code"><span class="label">每个模块开始前</span><pre>cd "$HOME\Desktop\stage1-data-structures\&lt;模块目录&gt;"
+$env:PYTHONUTF8='1'
+python test_&lt;模块&gt;.py; "exit=$LASTEXITCODE"</pre></div>
+  <p>看到最后一个“通过”和 <code>exit=0</code> 才算过。任何 <code>Traceback</code> 都要先修，不要跳过去做下一节。</p>
+
+  <h2><span class="sec-no">A.4</span>下一步</h2>
+  <p>阶段一还剩两个收尾条件：一篇 600 字以内的总结（写清六个模块各自解决了什么问题），一个能公开的仓库作品（把 30 题和六个小工具放进去，带 README 和测试）。</p>
+  <p>之后进阶段二：机器学习基础与 LLM 应用。那边的第一件事是把这里的“读文件、算统计、调接口、存结果”串成一条完整的数据管线——所以这一章的六个小工具不是练习题，是后面要用的零件。</p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>阶段一教材 · 生成于本地工作区 · 所有数字来自实际运行输出</p>
+</footer>
+</div>
+</body>
+</html>
