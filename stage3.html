@@ -165,21 +165,29 @@ html[data-theme="dark"] .cover-sub{color:#c3c0b6}
   <p>四个值都是“会变但不想改代码”的东西。改城市、改步数上限、换模型地址，只动这一个文件。</p>
 
   <h2><span class="sec-no">0.2</span>账本：日志 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">config_and_log.py</span><pre>import json, logging
-from pathlib import Path
+  <div class="code"><span class="label">config_and_log.py</span><pre>import json, logging                          # 读 JSON、写日志
+from pathlib import Path                      # 处理文件路径
 
-ROOT = Path(__file__).parent
-CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+ROOT = Path(__file__).parent                  # 本文件所在的目录
+CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))  # 读配置文件，转成字典
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s",
-    handlers=[logging.FileHandler(ROOT / "agent.log", encoding="utf-8")],
+    level=logging.INFO,                        # 记录 INFO 及以上的日志
+    format="%(asctime)s %(levelname)s %(message)s",  # 时间、级别、内容
+    handlers=[logging.FileHandler(ROOT / "agent.log", encoding="utf-8")],  # 写进文件，UTF-8 防乱码
 )
-log = logging.getLogger("agent")
+log = logging.getLogger("agent")               # 拿到一个叫 agent 的记录器
 
-log.info("启动，城市=%s，最多 %d 步", CONFIG["city"], CONFIG["max_steps"])
-print("配置：", CONFIG)</pre></div>
+log.info("启动，城市=%s，最多 %d 步", CONFIG["city"], CONFIG["max_steps"])  # %s 填字符串，%d 填整数
+print("配置：", CONFIG)                          # 同时打印一份到屏幕</pre></div>
+  <p>配置这四个键各管一件事，改值不用改代码：</p>
+  <table>
+    <tr><th>键</th><th>谁用它</th><th>改了会怎样</th></tr>
+    <tr><td><code>city</code></td><td>天气工具</td><td>查的城市跟着变</td></tr>
+    <tr><td><code>max_steps</code></td><td>循环</td><td>最多允许走几步就停</td></tr>
+    <tr><td><code>retry_limit</code></td><td>工具调用层</td><td>失败后再试几次</td></tr>
+    <tr><td><code>model_url</code></td><td>模型客户端</td><td>请求发到哪个地址</td></tr>
+  </table>
   <div class="out"><span class="label">实际输出</span><pre>配置： {'city': '常州', 'max_steps': 5, 'retry_limit': 2, 'model_url': 'http://127.0.0.1:18090/chat'}
 2026-11-06 10:22:34,185 INFO 启动，城市=常州，最多 5 步</pre></div>
   <p>日志和 <code>print</code> 的区别：<code>print</code> 给人看，日志给“出问题时的你”看。它带时间、带级别，还能只写进文件不刷屏。</p>
@@ -216,25 +224,25 @@ print("配置：", CONFIG)</pre></div>
   </div>
 
   <h2><span class="sec-no">1.1</span>先看失败长什么样 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">tools.py</span><pre>CALLS = {"n": 0}
+  <div class="code"><span class="label">tools.py</span><pre>CALLS = {"n": 0}                                  # 计数器：记录这个工具被调了几次
 
-def flaky_weather(args):
-    CALLS["n"] += 1
-    if CALLS["n"] &lt; 3:
-        raise TimeoutError("weather service timeout")
-    return {"city": args["city"], "rain": True}</pre></div>
+def flaky_weather(args):                          # 定义工具；args 是参数字典
+    CALLS["n"] += 1                               # 每调用一次，计数加一
+    if CALLS["n"] &lt; 3:                            # 前两次（第 1、2 次）
+        raise TimeoutError("weather service timeout")  # 主动抛超时错误，模拟服务挂掉
+    return {"city": args["city"], "rain": True}   # 第三次成功：返回城市和是否下雨</pre></div>
   <p>这个工具前两次必失败，第三次成功。用它才能验证重试是真的有用。</p>
 
   <h2><span class="sec-no">1.2</span>重试不是循环重发 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">tools.py（调用层）</span><pre>def call_tool(name, args, retry_limit=2):
-    for attempt in range(1, retry_limit + 2):      # 首次 + 2 次重试
-        try:
-            result = TOOLS[name](args)
-            return {"ok": True, "result": result, "attempts": attempt}
-        except Exception as error:
-            print(f"  第 {attempt} 次失败：{type(error).__name__}: {error}")
-            if attempt &gt; retry_limit:
-                return {"ok": False, "error": str(error), "attempts": attempt}</pre></div>
+  <div class="code"><span class="label">tools.py（调用层）</span><pre>def call_tool(name, args, retry_limit=2):          # name 工具名，args 参数，retry_limit 重试上限
+    for attempt in range(1, retry_limit + 2):      # 首次 + 2 次重试 = 一共 3 次机会
+        try:                                       # 尝试执行
+            result = TOOLS[name](args)             # 从工具表里按名字取函数并调用
+            return {"ok": True, "result": result, "attempts": attempt}  # 成功：带上第几次成功
+        except Exception as error:                 # 捕获任何异常
+            print(f"  第 {attempt} 次失败：{type(error).__name__}: {error}")  # 打印错误类型和内容
+            if attempt &gt; retry_limit:               # 已经用满重试次数
+                return {"ok": False, "error": str(error), "attempts": attempt}  # 如实返回失败</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>  第 1 次失败：TimeoutError: weather service timeout
   第 2 次失败：TimeoutError: weather service timeout
 {'ok': True, 'result': {'city': '常州', 'rain': True}, 'attempts': 3}</pre></div>
@@ -253,11 +261,11 @@ flowchart TD
 
   <h2><span class="sec-no">1.3</span>参数校验放在工具入口 <span class="badge b">B</span></h2>
   <p>模型可能传错东西：把城市传成数字、少传字段。校验放在工具内部，用一句明确的话拒绝，比在后面崩掉好排查。</p>
-  <div class="code"><span class="label">tools.py（校验）</span><pre>def get_weather(args):
-    city = args.get("city")
-    if not isinstance(city, str) or not city:
-        raise ValueError("city 必须是非空字符串")
-    return {"city": city, "rain": True}</pre></div>
+  <div class="code"><span class="label">tools.py（校验）</span><pre>def get_weather(args):                             # 工具入口，参数是字典
+    city = args.get("city")                        # 取城市；没有这个键就得到 None
+    if not isinstance(city, str) or not city:      # 不是字符串，或者是空字符串
+        raise ValueError("city 必须是非空字符串")    # 明确拒绝，别往下走
+    return {"city": city, "rain": True}            # 校验通过，返回结果</pre></div>
 
   <table>
     <tr><th>词</th><th>人话</th></tr>
@@ -292,19 +300,19 @@ flowchart TD
   </div>
 
   <h2><span class="sec-no">2.1</span>请求体长什么样 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">client.py</span><pre>messages = [
-    {"role": "system", "content": "你是学习教练，回答简短。"},
-    {"role": "user", "content": "我每天学习时长多少合适？"},
+  <div class="code"><span class="label">client.py</span><pre>messages = [                                    # 一串消息，按顺序交给模型
+    {"role": "system", "content": "你是学习教练，回答简短。"},  # 规定它的身份和说话风格
+    {"role": "user", "content": "我每天学习时长多少合适？"},    # 你这次问的问题
 ]
-payload = {"model": "mock", "messages": messages}</pre></div>
+payload = {"model": "mock", "messages": messages}  # 请求体：用哪个模型 + 带上消息</pre></div>
   <p>三件事和阶段二不同：多了 <code>model</code> 字段；问题包在 <code>messages</code> 里；多了一个 <code>system</code> 角色来定风格。</p>
 
   <h2><span class="sec-no">2.2</span>响应与用量 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">client.py（解析）</span><pre>payload = json.loads(response.read())
-reply = payload["choices"][0]["message"]["content"]
-usage = payload["usage"]
-print("回复：", reply)
-print("用量：", usage)</pre></div>
+  <div class="code"><span class="label">client.py（解析）</span><pre>payload = json.loads(response.read())           # 把响应里的字节转成字典
+reply = payload["choices"][0]["message"]["content"]  # 第一个候选回答的文字
+usage = payload["usage"]                         # 这次调用的 token 用量
+print("回复：", reply)                            # 打印回答
+print("用量：", usage)                            # 打印用量</pre></div>
   <div class="out"><span class="label">模拟服务返回（用量是写死的假数据）</span><pre>回复： 建议每天 40 分钟。
 用量： {'prompt_tokens': 18, 'completion_tokens': 9}</pre></div>
   <p>这里的 18 和 9 是本机模拟服务写死的数字，只用来演示格式。真实接口的 <code>usage</code> 来自响应体，由服务商计算，不能拿来对账以外的用途。</p>
@@ -343,30 +351,30 @@ print("用量：", usage)</pre></div>
   </div>
 
   <h2><span class="sec-no">3.1</span>建表并写入 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">memory.py</span><pre>import sqlite3
-from pathlib import Path
+  <div class="code"><span class="label">memory.py</span><pre>import sqlite3                                  # Python 自带的数据库
+from pathlib import Path                        # 处理文件路径
 
-db_path = Path("memory.db")
-db_path.unlink(missing_ok=True)
-db = sqlite3.connect(db_path)
-db.execute("""CREATE TABLE messages (
-    id INTEGER PRIMARY KEY,
-    role TEXT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+db_path = Path("memory.db")                     # 数据库文件放在当前目录
+db_path.unlink(missing_ok=True)                 # 每次重跑先删掉旧库，从干净状态开始
+db = sqlite3.connect(db_path)                   # 打开（或新建）数据库
+db.execute("""CREATE TABLE messages (           # 建表：一行一条消息
+    id INTEGER PRIMARY KEY,                     # 编号，自增，唯一
+    role TEXT NOT NULL,                         # 谁说的：user / assistant
+    content TEXT NOT NULL,                      # 说了什么
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP   # 写入时间，自动填
 )""")
 
-db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "我每天该学多久？"))
-db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("assistant", "建议每天 40 分钟。"))
-db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "那算法练多久？"))
-db.commit()</pre></div>
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "我每天该学多久？"))      # 加一条用户消息
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("assistant", "建议每天 40 分钟。"))  # 加一条模型回复
+db.execute("INSERT INTO messages(role, content) VALUES (?, ?)", ("user", "那算法练多久？"))          # 再加一条
+db.commit()                                      # 提交，不提交等于没写</pre></div>
   <p>每一行是一条消息，顺序靠 <code>id</code>。下次要接着聊，就读出来拼成 <code>messages</code> 列表再发给模型。</p>
 
   <h2><span class="sec-no">3.2</span>读回来 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">memory.py（读取）</span><pre>rows = db.execute("SELECT id, role, content FROM messages ORDER BY id").fetchall()
-for row in rows:
-    print(row)
-print("条数：", len(rows))</pre></div>
+  <div class="code"><span class="label">memory.py（读取）</span><pre>rows = db.execute("SELECT id, role, content FROM messages ORDER BY id").fetchall()  # 按编号顺序取全部
+for row in rows:                                # 一行一行处理
+    print(row)                                  # 每行是 (编号, 角色, 内容)
+print("条数：", len(rows))                       # 一共几条</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>(1, 'user', '我每天该学多久？')
 (2, 'assistant', '建议每天 40 分钟。')
 (3, 'user', '那算法练多久？')
@@ -409,9 +417,9 @@ print("条数：", len(rows))</pre></div>
 
   <h2><span class="sec-no">4.1</span>把笔记变成向量 <span class="badge a">A</span></h2>
   <p>这里用最笨但看得懂的办法：数关键词出现了几次。真实系统用模型给的向量，原理一样。</p>
-  <div class="code"><span class="label">retrieval.py</span><pre>KEYWORDS = ["算法", "结构", "线程", "文件", "数据库", "Agent", "模型", "日志", "上限", "重试"]
+  <div class="code"><span class="label">retrieval.py</span><pre>KEYWORDS = ["算法", "结构", "线程", "文件", "数据库", "Agent", "模型", "日志", "上限", "重试"]  # 词表：向量的每一位对应一个词
 
-NOTES = [
+NOTES = [                                       # 你的资料库，每行是一条笔记
     "二分查找每次砍掉一半，属于算法。",
     "哈希表用空间换时间，属于数据结构。",
     "线程共享数据要加锁，否则会丢更新。",
@@ -422,24 +430,24 @@ NOTES = [
     "工具失败就重试一次，两次都失败就记 error。",
 ]
 
-def vector(text):
-    return [text.count(word) for word in KEYWORDS]</pre></div>
+def vector(text):                               # 把一段文字变成向量
+    return [text.count(word) for word in KEYWORDS]  # 每个词出现几次，就是这一位的值</pre></div>
 
   <h2><span class="sec-no">4.2</span>谁最接近 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">retrieval.py（排序）</span><pre>query = "Agent 为什么要设步数上限？"
-qv = vector(query)
-scores = [(cosine(qv, vector(note)), note) for note in NOTES]
-scores.sort(reverse=True)
-for score, note in scores[:3]:
-    print(f"{score:.3f}  {note}")</pre></div>
+  <div class="code"><span class="label">retrieval.py（排序）</span><pre>query = "Agent 为什么要设步数上限？"              # 用户的问题
+qv = vector(query)                              # 问题也变成向量
+scores = [(cosine(qv, vector(note)), note) for note in NOTES]  # 每条笔记算一个相似度，配成 (分数, 原文)
+scores.sort(reverse=True)                       # 按分数从高到低排
+for score, note in scores[:3]:                  # 只看前三名
+    print(f"{score:.3f}  {note}")                # 保留三位小数，连同原文打印</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>0.707  Agent 要有步数上限和日志，模型调用要处理超时。
 0.500  循环没有上限会一直调用模型，必须设最大步数。
 0.000  线程共享数据要加锁，否则会丢更新。</pre></div>
   <p>第一名和第二名都和“上限”有关，第三名完全无关（得分 0）。取前两名就够了，把整本笔记塞进去既贵又吵。</p>
 
   <h2><span class="sec-no">4.3</span>拼进提示 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">retrieval.py（拼接）</span><pre>context = "\n".join(note for score, note in scores[:2] if score &gt; 0)
-prompt = f"只根据下面的资料回答：\n{context}\n\n问题：{query}"</pre></div>
+  <div class="code"><span class="label">retrieval.py（拼接）</span><pre>context = "\n".join(note for score, note in scores[:2] if score &gt; 0)  # 取前二，丢掉 0 分，用换行拼起来
+prompt = f"只根据下面的资料回答：\n{context}\n\n问题：{query}"          # 规定答题依据，再放资料和问题</pre></div>
   <p>“只根据下面的资料回答”这句很关键，否则模型会用自己的知识补充，你就没法判断答案是从笔记来的还是编的。</p>
 
   <h2><span class="sec-no">4.4</span>真实检索的三步 <span class="badge b">B</span></h2>
@@ -486,27 +494,27 @@ prompt = f"只根据下面的资料回答：\n{context}\n\n问题：{query}"</pr
   </div>
 
   <h2><span class="sec-no">5.1</span>先看卡住的样子 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">loop.py</span><pre>def get_weather(args):
-    return {"ok": False, "error": "service timeout"}
+  <div class="code"><span class="label">loop.py</span><pre>def get_weather(args):                          # 天气工具（这里故意失败）
+    return {"ok": False, "error": "service timeout"}  # 返回失败，模拟服务超时
 
-def decide(state, history):
-    if state["rain"] is None:
-        return "get_weather", {"city": "常州"}
-    return "finish", {}
+def decide(state, history):                     # 决定下一步干什么
+    if state["rain"] is None:                   # 还没查到天气
+        return "get_weather", {"city": "常州"}    # 那就先调天气工具
+    return "finish", {}                         # 查到了就结束
 
-state = {"rain": None}
-history = []
-for step in range(1, 6):
-    action, args = decide(state, history)
-    if action == "finish":
+state = {"rain": None}                          # 状态：天气还不知道
+history = []                                    # 记录做过的动作
+for step in range(1, 6):                        # 最多走 5 步
+    action, args = decide(state, history)       # 问：下一步做什么
+    if action == "finish":                      # 该结束了
         print(f"[{step}] 结束")
         break
-    if history.count(action) &gt;= 2:
-        print(f"[{step}] 检测到动作 {action} 重复两次，停止")
+    if history.count(action) &gt;= 2:              # 同一个动作已经做过两次
+        print(f"[{step}] 检测到动作 {action} 重复两次，停止")  # 拦住，不再调
         break
-    result = get_weather(args)
-    history.append(action)
-    print(f"[{step}] {action} → {result}")</pre></div>
+    result = get_weather(args)                  # 执行工具
+    history.append(action)                      # 记进历史
+    print(f"[{step}] {action} → {result}")      # 打印这一步的结果</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>[1] get_weather → {'ok': False, 'error': 'service timeout'}
 [2] get_weather → {'ok': False, 'error': 'service timeout'}
 [3] 检测到动作 get_weather 重复两次，停止</pre></div>
@@ -546,7 +554,7 @@ for step in range(1, 6):
   </div>
 
   <h2><span class="sec-no">6.1</span>卷子 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">evaluate.py</span><pre>CASES = [
+  <div class="code"><span class="label">evaluate.py</span><pre>CASES = [                                       # 卷子：每条是（问题，必须出现的关键词）
     ("明天要带伞吗？", "带伞"),
     ("我每天学多久？", "40 分钟"),
     ("算法怎么练？", "先做题"),
@@ -557,12 +565,12 @@ for step in range(1, 6):
     ("接口超时怎么办？", "重试"),
 ]
 
-for goal, must in CASES:
-    reply = run_agent(goal)
-    if must in reply:
-        passed += 1
+for goal, must in CASES:                        # 一条一条考
+    reply = run_agent(goal)                     # 让 Agent 回答
+    if must in reply:                           # 回答里出现了关键词
+        passed += 1                             # 算通过
     else:
-        failed.append((goal, must, reply))</pre></div>
+        failed.append((goal, must, reply))      # 记下问题、期望、实际回答</pre></div>
 
   <h2><span class="sec-no">6.2</span>分数和失败清单 <span class="badge b">B</span></h2>
   <div class="out"><span class="label">实际输出</span><pre>通过 7/8，通过率 88%
@@ -602,19 +610,19 @@ for goal, must in CASES:
   </div>
 
   <h2><span class="sec-no">7.1</span>接参数 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">agent.py（节选：只列入口部分）</span><pre>import argparse, json, logging
-from pathlib import Path
+  <div class="code"><span class="label">agent.py（节选：只列入口部分）</span><pre>import argparse, json, logging                  # 命令行参数、读配置、写日志
+from pathlib import Path                        # 处理文件路径
 
-ROOT = Path(__file__).parent
-CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
-logging.basicConfig(filename=ROOT / "agent.log", level=logging.INFO,
+ROOT = Path(__file__).parent                    # 脚本所在目录
+CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))  # 读配置
+logging.basicConfig(filename=ROOT / "agent.log", level=logging.INFO,     # 日志写文件
                     format="%(asctime)s %(levelname)s %(message)s", encoding="utf-8")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--goal", default="明天要不要带伞")
-args = parser.parse_args()
-print("目标：", args.goal)
-print("答案：", run(args.goal))</pre></div>
+parser = argparse.ArgumentParser()              # 造一个命令行参数解析器
+parser.add_argument("--goal", default="明天要不要带伞")  # 支持 --goal，不给就用默认值
+args = parser.parse_args()                      # 真正解析用户输入
+print("目标：", args.goal)                       # 打印这次的目标
+print("答案：", run(args.goal))                  # 调主流程，打印最终答案</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>目标： 明天要不要带伞
 [1] get_weather → {'city': '常州', 'rain': True}
 [2] 结论：带伞
