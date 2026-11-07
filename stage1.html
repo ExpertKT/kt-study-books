@@ -116,7 +116,38 @@
     pre{white-space:pre-wrap}
   }
 </style>
-<style>pre.mermaid{margin:0 0 16px;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 "Cascadia Mono",Consolas,monospace;color:#23231f}</style></head>
+<style>
+html[data-theme="dark"]{
+  --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#8b887f;
+  --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
+  --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
+  --analogy-bg:#232320;--analogy-rule:#6b6555;
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme="light"]){
+    --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#8b887f;
+    --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
+    --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
+    --analogy-bg:#232320;--analogy-rule:#6b6555;
+  }
+}
+html[data-theme="dark"] th{background:#26261f;color:#c9c6bb}
+html[data-theme="dark"] .quiz{background:#201f1a}
+html[data-theme="dark"] pre{color:#e6e4dc}
+html[data-theme="dark"] .out pre{color:#cfe0d3}
+html[data-theme="dark"] .analogy strong{color:#d9cfae}
+html[data-theme="dark"] .warn strong{color:#e0c987}
+html[data-theme="dark"] .badge.b{color:#c9c1a6}
+html[data-theme="dark"] .toc{background:#1f2c25}
+html[data-theme="dark"] .cover-sub{color:#c3c0b6}
+#theme-toggle{position:fixed;right:18px;bottom:18px;z-index:99;border:1px solid var(--rule);
+  background:var(--paper);color:var(--ink);padding:9px 14px;border-radius:20px;
+  font:600 12.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.06em;cursor:pointer;
+  box-shadow:0 3px 12px rgba(0,0,0,.22)}
+#theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+@media print{#theme-toggle{display:none}}
+</style>
+</head>
 <body>
 <div class="page">
 
@@ -959,5 +990,31 @@ python test_&lt;模块&gt;.py; "exit=$LASTEXITCODE"</pre></div>
   <p>阶段一教材 · 生成于本地工作区 · 所有数字来自实际运行输出</p>
 </footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script></body>
+<button id="theme-toggle" type="button" aria-label="切换夜间模式">夜间模式</button>
+<script>
+(function(){
+  var saved = localStorage.getItem("textbook-theme");
+  var root = document.documentElement;
+  if (saved) root.dataset.theme = saved;
+  var btn = document.getElementById("theme-toggle");
+  function current(){
+    return root.dataset.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  }
+  function paint(){ btn.textContent = current() === "dark" ? "日间模式" : "夜间模式"; }
+  btn.addEventListener("click", function(){
+    var next = current() === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    localStorage.setItem("textbook-theme", next);
+    paint();
+  });
+  paint();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+if (window.mermaid) {
+  mermaid.initialize({ startOnLoad: true, theme: document.documentElement.dataset.theme === "dark" ? "dark" : "default" });
+}
+</script>
+</body>
 </html>
