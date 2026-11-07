@@ -71,14 +71,14 @@
 </style>
 <style>
 html[data-theme="dark"]{
-  --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#8b887f;
+  --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#a8a49a;
   --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
   --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
   --analogy-bg:#232320;--analogy-rule:#6b6555;
 }
 @media (prefers-color-scheme: dark){
   html:not([data-theme="light"]){
-    --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#8b887f;
+    --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#a8a49a;
     --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
     --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
     --analogy-bg:#232320;--analogy-rule:#6b6555;
@@ -100,7 +100,16 @@ html[data-theme="dark"] .cover-sub{color:#c3c0b6}
 #theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
 @media print{#theme-toggle{display:none}}
 </style>
-</head>
+<script id="theme-boot">
+(function(){
+  try {
+    var saved = localStorage.getItem("textbook-theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+  } catch (e) {}
+})();
+
+</script></head>
 <body>
 <div class="page">
 
@@ -678,9 +687,11 @@ print("答案：", run(args.goal))</pre></div>
 <button id="theme-toggle" type="button" aria-label="切换夜间模式">夜间模式</button>
 <script>
 (function(){
-  var saved = localStorage.getItem("textbook-theme");
+  var saved = null;
+  try { saved = localStorage.getItem("textbook-theme"); } catch (e) {}
+  var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   var root = document.documentElement;
-  if (saved) root.dataset.theme = saved;
+  root.dataset.theme = saved || (prefersDark ? "dark" : "light");
   var btn = document.getElementById("theme-toggle");
   function current(){
     return root.dataset.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
