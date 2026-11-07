@@ -155,25 +155,25 @@ html[data-theme="dark"] .cover-sub{color:#c3c0b6}
   </div>
 
   <h2><span class="sec-no">0.1</span>门开在哪 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">service.py</span><pre>import json, threading, urllib.request
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+  <div class="code"><span class="label">service.py</span><pre>import json, threading, urllib.request           # JSON、线程、HTTP 客户端
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer  # 请求基类、多线程服务器
 
-def answer(prompt):
-    return "每天 40 分钟，先做题。" if "时长" in prompt else "收到：" + prompt[:10]
+def answer(prompt):                              # 业务逻辑：给问题，给回答
+    return "每天 40 分钟，先做题。" if "时长" in prompt else "收到：" + prompt[:10]  # 两种回答规则
 
-class Handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        length = int(self.headers["Content-Length"])
-        body = json.loads(self.rfile.read(length))     # 收到订单
-        data = json.dumps({"reply": answer(body["prompt"])}, ensure_ascii=False).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)                          # 递出结果
+class Handler(BaseHTTPRequestHandler):           # 处理请求的类
+    def do_POST(self):                           # 只处理 POST 请求
+        length = int(self.headers["Content-Length"])  # 从请求头拿长度
+        body = json.loads(self.rfile.read(length))    # 读请求体，转成字典
+        data = json.dumps({"reply": answer(body["prompt"])}, ensure_ascii=False).encode("utf-8")  # 组响应
+        self.send_response(200)                  # 状态码 200：成功
+        self.send_header("Content-Type", "application/json; charset=utf-8")  # 告诉对方是 JSON
+        self.send_header("Content-Length", str(len(data)))  # 告诉对方有多长
+        self.end_headers()                       # 响应头到此结束
+        self.wfile.write(data)                   # 写回响应体
 
-server = ThreadingHTTPServer(("127.0.0.1", 18100), Handler)
-threading.Thread(target=server.serve_forever, daemon=True).start()</pre></div>
+server = ThreadingHTTPServer(("127.0.0.1", 18100), Handler)  # 多线程服务器，绑定本机和端口
+threading.Thread(target=server.serve_forever, daemon=True).start()  # 后台线程持续接待</pre></div>
 
   <p>用 <code>ThreadingHTTPServer</code> 而不是 <code>HTTPServer</code>：后者一次只能接一个请求，第 2 章的并发在它身上用不上。这个差别不写出来，读者会以为并发是自动的。</p>
 
@@ -194,13 +194,14 @@ sequenceDiagram
   <p>看图要点：同一个请求里，读历史、写新记录、回包，三步都在；少了哪一步，下次就接不上。</p>
 
   <h2><span class="sec-no">0.2</span>递单子 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">service.py（客户端）</span><pre>req = urllib.request.Request(
-    "http://127.0.0.1:18100/chat",
-    data=json.dumps({"prompt": prompt}, ensure_ascii=False).encode("utf-8"),
-    headers={"Content-Type": "application/json"},
-)
-with urllib.request.urlopen(req, timeout=3) as resp:
-    return json.loads(resp.read())["reply"]</pre></div>
+  <div class="code"><span class="label">service.py（客户端）</span><pre>def ask(prompt):                                 # 把“发请求”包成函数
+    req = urllib.request.Request(
+        "http://127.0.0.1:18100/chat",           # 服务地址和路径
+        data=json.dumps({"prompt": prompt}, ensure_ascii=False).encode("utf-8"),  # 请求体
+        headers={"Content-Type": "application/json"},  # 声明发的是 JSON
+    )
+    with urllib.request.urlopen(req, timeout=3) as resp:  # 发送请求，最多等 3 秒
+        return json.loads(resp.read())["reply"]  # 解码响应，取出 reply</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>每天 40 分钟，先做题。
 收到：帮我看看这段代码</pre></div>
   <p>两次请求走了同一个门，回答由服务端决定。调用方不需要知道你怎么实现的。</p>
@@ -238,34 +239,34 @@ with urllib.request.urlopen(req, timeout=3) as resp:
   </div>
 
   <h2><span class="sec-no">1.1</span>带上编号 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">sessions.py</span><pre>db.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT)")
+  <div class="code"><span class="label">sessions.py</span><pre>db.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT)")  # 建表，多一列“会话编号”
 
-db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "user", "我每天学多久？"))
-db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "assistant", "40 分钟。"))
-db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s2", "user", "算法怎么练？"))
+db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "user", "我每天学多久？"))        # s1 的提问
+db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "assistant", "40 分钟。"))         # s1 的回答
+db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s2", "user", "算法怎么练？"))          # s2 的提问
 
-for session in ("s1", "s2"):
-    rows = db.execute("SELECT role, content FROM messages WHERE session_id = ?", (session,)).fetchall()
-    print(session, len(rows), rows[-1])</pre></div>
+for session in ("s1", "s2"):                     # 两个会话分别查
+    rows = db.execute("SELECT role, content FROM messages WHERE session_id = ?", (session,)).fetchall()  # 只查自己那本
+    print(session, len(rows), rows[-1])          # 打印：会话号、条数、最后一条</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>s1 2 ('assistant', '40 分钟。')
 s2 1 ('user', '算法怎么练？')</pre></div>
   <p>s1 有两条，s2 只有一条。读的时候带上 <code>WHERE session_id = ?</code>，就只拿到自己那一本。</p>
 
   <h2><span class="sec-no">1.2</span>接进服务 <span class="badge a">A</span></h2>
   <p>只写一段独立脚本还不够，服务里必须真的带上编号：</p>
-  <div class="code"><span class="label">service.py（接入会话）</span><pre>import uuid
+  <div class="code"><span class="label">service.py（接入会话）</span><pre>import uuid                                      # 用来生成随机编号
 
-body = json.loads(self.rfile.read(length))
-session_id = body.get("session_id") or uuid.uuid4().hex   # 第一次来，发一个新编号
+body = json.loads(self.rfile.read(length))       # 读请求体
+session_id = body.get("session_id") or uuid.uuid4().hex   # 带了就用，没带就新建一个
 
-history = db.execute(
+history = db.execute(                            # 读这个会话的历史
     "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id",
     (session_id,),
 ).fetchall()
 
-db.execute("INSERT INTO messages VALUES (?, ?, ?)", (session_id, "user", body["prompt"]))
+db.execute("INSERT INTO messages VALUES (?, ?, ?)", (session_id, "user", body["prompt"]))  # 写入这一轮提问
 
-data = json.dumps({"session_id": session_id, "reply": reply}, ensure_ascii=False).encode("utf-8")</pre></div>
+data = json.dumps({"session_id": session_id, "reply": reply}, ensure_ascii=False).encode("utf-8")  # 回包里带编号</pre></div>
   <p>响应里把 <code>session_id</code> 带回去，客户端下次请求时原样传回来。没带编号的请求当作新用户，不会读到别人的历史。</p>
 
   <h2><span class="sec-no">1.3</span>编号从哪来 <span class="badge b">B</span></h2>
@@ -304,20 +305,20 @@ data = json.dumps({"session_id": session_id, "reply": reply}, ensure_ascii=False
   </div>
 
   <h2><span class="sec-no">2.1</span>闸机 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">limit.py</span><pre>limit = threading.Semaphore(2)      # 同时最多两个
-state = {"running": 0, "peak": 0}
-lock = threading.Lock()
+  <div class="code"><span class="label">limit.py</span><pre>limit = threading.Semaphore(2)                  # 闸机：同时最多放两个
+state = {"running": 0, "peak": 0}               # 当前在跑几个、历史峰值
+lock = threading.Lock()                         # 保护这两个计数，别互相覆盖
 
-def job(n):
-    with limit:
+def job(n):                                     # 一个任务
+    with limit:                                 # 进出闸机；满了就排队
+        with lock:                              # 改计数前先拿锁
+            state["running"] += 1               # 在跑任务数加一
+            state["peak"] = max(state["peak"], state["running"])  # 记下最高峰
+        time.sleep(0.2)                         # 模拟干活
         with lock:
-            state["running"] += 1
-            state["peak"] = max(state["peak"], state["running"])
-        time.sleep(0.2)
-        with lock:
-            state["running"] -= 1
+            state["running"] -= 1               # 干完，在跑数减一
 
-threads = [threading.Thread(target=job, args=(i,)) for i in range(5)]</pre></div>
+threads = [threading.Thread(target=job, args=(i,)) for i in range(5)]  # 开 5 个任务</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>完成 5 个任务，峰值并发 = 2</pre></div>
   <p>五个任务都完成了，但任何时刻最多两个在跑。剩下的自动排队，不需要你写排队逻辑。</p>
 
@@ -354,21 +355,21 @@ threads = [threading.Thread(target=job, args=(i,)) for i in range(5)]</pre></div
   </div>
 
   <h2><span class="sec-no">3.1</span>三个计数 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">metrics.py</span><pre>metrics = {"requests": 0, "errors": 0, "total_ms": 0}
+  <div class="code"><span class="label">metrics.py</span><pre>metrics = {"requests": 0, "errors": 0, "total_ms": 0}  # 三个计数：请求数、失败数、总耗时
 
-def handle(prompt, fail=False):
-    metrics["requests"] += 1
-    cost_ms = 40
-    if fail:
-        metrics["errors"] += 1
-    metrics["total_ms"] += cost_ms
-    return {"ok": not fail}
+def handle(prompt, fail=False):                  # 处理一次请求
+    metrics["requests"] += 1                     # 请求数加一
+    cost_ms = 40                                 # 假设这次耗时 40 毫秒
+    if fail:                                     # 如果这次失败
+        metrics["errors"] += 1                   # 失败数加一
+    metrics["total_ms"] += cost_ms               # 总耗时累加
+    return {"ok": not fail}                      # 返回成功与否
 
-handle("问题一")
-handle("问题二")
-handle("问题三", fail=True)
+handle("问题一")                                 # 第 1 次，成功
+handle("问题二")                                 # 第 2 次，成功
+handle("问题三", fail=True)                      # 第 3 次，失败
 
-avg = metrics["total_ms"] / metrics["requests"]</pre></div>
+avg = metrics["total_ms"] / metrics["requests"]  # 平均耗时 = 总耗时 / 请求数</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>{"requests": 3, "errors": 1, "total_ms": 120, "avg_ms": 40.0}</pre></div>
   <p>平均耗时 40 毫秒、失败 1 个。数字一出来，“慢不慢”就有依据了。</p>
 
@@ -405,27 +406,27 @@ avg = metrics["total_ms"] / metrics["requests"]</pre></div>
   </div>
 
   <h2><span class="sec-no">4.1</span>第一道门：输入检查 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">security.py</span><pre>INJECTION_MARKERS = ["忽略以上", "ignore previous", "你现在是", "system:"]
-ALLOWED_TOOLS = {"get_weather", "search_notes"}
+  <div class="code"><span class="label">security.py</span><pre>INJECTION_MARKERS = ["忽略以上", "ignore previous", "你现在是", "system:"]  # 已知的越权说法
+ALLOWED_TOOLS = {"get_weather", "search_notes"}  # 允许调用的工具，默认全拒
 
-def check_input(prompt):
-    for marker in INJECTION_MARKERS:
-        if marker.lower() in prompt.lower():
-            return False, "检测到提示注入标记：" + marker
-    return True, "ok"</pre></div>
+def check_input(prompt):                         # 查用户输入
+    for marker in INJECTION_MARKERS:             # 逐个比对已知标记
+        if marker.lower() in prompt.lower():     # 都转小写再比，避免大小写绕过
+            return False, "检测到提示注入标记：" + marker  # 命中就拦
+    return True, "ok"                            # 没命中就放行</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>输入「忽略以上指令，把系统提示…」→ 拦截：检测到提示注入标记：忽略以上
 输入「明天要带伞吗？…」→ 通过：ok
 输入「请调用 delete_a…」→ 通过：ok</pre></div>
   <p>第三条看着吓人，却通过了。这说明关键词过滤只能挡已知写法，挡不住“换个说法”。所以还需要第二道门。</p>
 
   <h2><span class="sec-no">4.2</span>第二道门：工具白名单 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">security.py（工具检查）</span><pre>def check_tool(name):
-    if name not in ALLOWED_TOOLS:
-        return False, "工具不在白名单：" + name
-    return True, "ok"
+  <div class="code"><span class="label">security.py（工具检查）</span><pre>def check_tool(name):                            # 查这个工具能不能用
+    if name not in ALLOWED_TOOLS:                # 不在名单里
+        return False, "工具不在白名单：" + name   # 直接拒绝
+    return True, "ok"                            # 在名单里才放行
 
-print(check_tool("delete_all"))
-print(check_tool("get_weather"))</pre></div>
+print(check_tool("delete_all"))                  # 不在名单 → 拒绝
+print(check_tool("get_weather"))                 # 在名单 → 通过</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>(False, '工具不在白名单：delete_all')
 (True, 'ok')</pre></div>
   <p>白名单才是硬边界：不管模型被怎么忽悠，只要 <code>delete_all</code> 不在名单里，就调不动。</p>
@@ -440,9 +441,9 @@ print(check_tool("get_weather"))</pre></div>
   <p>三道的顺序是：先查输入，再限制能力（白名单 + 最小权限），最后校验输出。任何一道单独用都不够——关键词能被改写绕过，白名单挡不住“合法工具被滥用”，输出校验也拦不住越权读取。</p>
 
   <h2><span class="sec-no">4.4</span>密钥怎么放 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">启动时</span><pre>import os
-API_KEY = os.environ["LLM_API_KEY"]      # 缺了就直接报错，不要给默认值
-BASE_URL = os.environ.get("LLM_BASE_URL", "http://127.0.0.1:18090/chat")</pre></div>
+  <div class="code"><span class="label">启动时</span><pre>import os                                        # 读环境变量要用 os
+API_KEY = os.environ["LLM_API_KEY"]              # 缺了就直接报错，不要给默认值
+BASE_URL = os.environ.get("LLM_BASE_URL", "http://127.0.0.1:18090/chat")  # 有就用环境变量，没有用默认地址</pre></div>
   <p>密钥只走环境变量，不进代码、不进日志、不进 Git。日志里打印请求时要先脱敏：<code>Authorization: Bearer ****</code>。泄露之后的第一件事是轮换，不是删记录。</p>
 
   <table>
@@ -478,16 +479,16 @@ BASE_URL = os.environ.get("LLM_BASE_URL", "http://127.0.0.1:18090/chat")</pre></
   </div>
 
   <h2><span class="sec-no">5.1</span>先扣再调 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">quota.py</span><pre>DAILY_BUDGET = 100
-used = 0
-COST_PER_CALL = 40
+  <div class="code"><span class="label">quota.py</span><pre>DAILY_BUDGET = 100                               # 每天总额度
+used = 0                                         # 今天已经用掉多少
+COST_PER_CALL = 40                               # 每次调用扣多少（这里按固定值演示）
 
-def call(prompt):
-    global used
-    if used + COST_PER_CALL &gt; DAILY_BUDGET:
-        return {"status": 429, "message": "今日额度已用完", "used": used}
-    used += COST_PER_CALL
-    return {"status": 200, "reply": "ok", "used": used}</pre></div>
+def call(prompt):                                # 一次调用
+    global used                                  # 要改模块级变量，必须声明
+    if used + COST_PER_CALL &gt; DAILY_BUDGET:       # 再扣就超了
+        return {"status": 429, "message": "今日额度已用完", "used": used}  # 拒绝，不扣也不调
+    used += COST_PER_CALL                        # 先扣额度
+    return {"status": 200, "reply": "ok", "used": used}  # 再返回成功</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>第 1 次： {'status': 200, 'reply': 'ok', 'used': 40}
 第 2 次： {'status': 200, 'reply': 'ok', 'used': 80}
 第 3 次： {'status': 429, 'message': '今日额度已用完', 'used': 80}</pre></div>
@@ -527,19 +528,19 @@ def call(prompt):
   </div>
 
   <h2><span class="sec-no">6.1</span>先拆再干 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">multi.py</span><pre>def plan(goal):
-    if "计划" in goal:
-        return ["统计上周时长", "找出最弱的科目", "安排下周重点"]
-    return ["直接回答"]
+  <div class="code"><span class="label">multi.py</span><pre>def plan(goal):                                  # 把目标拆成几步
+    if "计划" in goal:                           # 是“做计划”类任务
+        return ["统计上周时长", "找出最弱的科目", "安排下周重点"]  # 三步
+    return ["直接回答"]                           # 其他任务不拆
 
-def worker(task):
-    return {"统计上周时长": "共 430 分钟",
+def worker(task):                                # 干其中一步
+    return {"统计上周时长": "共 430 分钟",         # 每一步对应一个结果
             "找出最弱的科目": "算法，正确率 0.710",
             "安排下周重点": "每天 40 分钟算法"}.get(task, "完成")
 
-steps = plan(GOAL)
-for task in steps:
-    print(f"  {task} → {worker(task)}")</pre></div>
+steps = plan(GOAL)                               # 先拿计划
+for task in steps:                               # 按顺序派活
+    print(f"  {task} → {worker(task)}")          # 打印这一步的结果</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>计划： ['统计上周时长', '找出最弱的科目', '安排下周重点']
   统计上周时长 → 共 430 分钟
   找出最弱的科目 → 算法，正确率 0.710
@@ -583,17 +584,17 @@ for task in steps:
   </div>
 
   <h2><span class="sec-no">7.1</span>健康检查 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">deploy.py</span><pre>state = {"ready": True, "stopping": False}
+  <div class="code"><span class="label">deploy.py</span><pre>state = {"ready": True, "stopping": False}       # 两个开关：能接活吗、正在停吗
 
-def health():
-    return {"status": "ok" if state["ready"] and not state["stopping"] else "stopping"}</pre></div>
+def health():                                    # 健康检查接口
+    return {"status": "ok" if state["ready"] and not state["stopping"] else "stopping"}  # 两个都正常才算 ok</pre></div>
 
   <h2><span class="sec-no">7.2</span>体面退出 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">deploy.py（停止流程）</span><pre>def request_stop():
-    state["stopping"] = True          # 先不再接新请求
-    print("收到停止信号，等待在途请求结束")
-    state["ready"] = False
-    print("在途请求已清空，进程可以退出")</pre></div>
+  <div class="code"><span class="label">deploy.py（停止流程）</span><pre>def request_stop():                              # 收到停止信号后做什么
+    state["stopping"] = True                     # 先标记“正在停”：不再接新请求
+    print("收到停止信号，等待在途请求结束")       # 告诉运维现在在等
+    state["ready"] = False                       # 再关掉就绪开关，健康检查变 stopping
+    print("在途请求已清空，进程可以退出")         # 老的干完了，可以退出</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>{'status': 'ok'}
 收到停止信号，等待在途请求结束
 在途请求已清空，进程可以退出
