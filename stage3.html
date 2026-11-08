@@ -230,7 +230,9 @@ def flaky_weather(args):                          # 定义工具；args 是参�
     CALLS["n"] += 1                               # 每调用一次，计数加一
     if CALLS["n"] &lt; 3:                            # 前两次（第 1、2 次）
         raise TimeoutError("weather service timeout")  # 主动抛超时错误，模拟服务挂掉
-    return {"city": args["city"], "rain": True}   # 第三次成功：返回城市和是否下雨</pre></div>
+    return {"city": args["city"], "rain": True}   # 第三次成功：返回城市和是否下雨
+
+TOOLS = {"flaky_weather": flaky_weather}          # 工具表：名字 → 函数，call_tool 靠它找函数</pre></div>
   <p>这个工具前两次必失败，第三次成功。用它才能验证重试是真的有用。</p>
 
   <h2><span class="sec-no">1.2</span>重试不是循环重发 <span class="badge a">A</span></h2>
@@ -308,7 +310,12 @@ payload = {"model": "mock", "messages": messages}  # 请求体：用哪个模型
   <p>三件事和阶段二不同：多了 <code>model</code> 字段；问题包在 <code>messages</code> 里；多了一个 <code>system</code> 角色来定风格。</p>
 
   <h2><span class="sec-no">2.2</span>响应与用量 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">client.py（解析）</span><pre>payload = json.loads(response.read())           # 把响应里的字节转成字典
+  <div class="code"><span class="label">client.py（解析）</span><pre>import json, urllib.request                     # JSON、HTTP 客户端
+request = urllib.request.Request("http://127.0.0.1:18090/chat",  # 模拟模型地址
+                                 data=json.dumps(payload).encode("utf-8"),  # 请求体：上一段拼好的 messages
+                                 headers={"Content-Type": "application/json"})  # 声明送的是 JSON
+response = urllib.request.urlopen(request, timeout=3)  # 发出去，拿到响应
+payload = json.loads(response.read())           # 把响应里的字节转成字典
 reply = payload["choices"][0]["message"]["content"]  # 第一个候选回答的文字
 usage = payload["usage"]                         # 这次调用的 token 用量
 print("回复：", reply)                            # 打印回答
@@ -417,7 +424,9 @@ print("条数：", len(rows))                       # 一共几条</pre></div>
 
   <h2><span class="sec-no">4.1</span>把笔记变成向量 <span class="badge a">A</span></h2>
   <p>这里用最笨但看得懂的办法：数关键词出现了几次。真实系统用模型给的向量，原理一样。</p>
-  <div class="code"><span class="label">retrieval.py</span><pre>KEYWORDS = ["算法", "结构", "线程", "文件", "数据库", "Agent", "模型", "日志", "上限", "重试"]  # 词表：向量的每一位对应一个词
+  <div class="code"><span class="label">retrieval.py</span><pre>import math                                      # 算平方根，后面 cosine 用
+
+KEYWORDS = ["算法", "结构", "线程", "文件", "数据库", "Agent", "模型", "日志", "上限", "重试"]  # 词表：向量的每一位对应一个词
 
 NOTES = [                                       # 你的资料库，每行是一条笔记
     "二分查找每次砍掉一半，属于算法。",
@@ -431,7 +440,13 @@ NOTES = [                                       # 你的资料库，每行是一
 ]
 
 def vector(text):                               # 把一段文字变成向量
-    return [text.count(word) for word in KEYWORDS]  # 每个词出现几次，就是这一位的值</pre></div>
+    return [text.count(word) for word in KEYWORDS]  # 每个词出现几次，就是这一位的值
+
+def cosine(a, b):                               # 两支向量的方向相似度
+    dot = sum(x * y for x, y in zip(a, b))       # 对应位相乘再相加（点积）
+    na = math.sqrt(sum(x * x for x in a))        # a 的长度
+    nb = math.sqrt(sum(y * y for y in b))        # b 的长度
+    return dot / (na * nb) if na and nb else 0.0  # 点积 ÷ 两长度；全零向量记 0 分</pre></div>
 
   <h2><span class="sec-no">4.2</span>谁最接近 <span class="badge a">A</span></h2>
   <div class="code"><span class="label">retrieval.py（排序）</span><pre>query = "Agent 为什么要设步数上限？"              # 用户的问题
@@ -565,6 +580,18 @@ for step in range(1, 6):                        # 最多走 5 步
     ("接口超时怎么办？", "重试"),
 ]
 
+ANSWERS = {                                      # 假 Agent 的回答表：问题 → 回答
+    "明天要带伞吗？": "有雨，带伞。", "我每天学多久？": "每天 40 分钟。",
+    "算法怎么练？": "先做题再看讲解。", "怎么复习？": "每天回顾错题。",
+    "数据存在哪？": "存进 SQLite。", "为什么要日志？": "出问题能排查。",
+    "Agent 要限制什么？": "限制步数和重试次数。", "接口超时怎么办？": "等一会儿再问一次。",
+}
+
+def run_agent(goal):                             # 按问题查表，查不到就说不知道
+    return ANSWERS.get(goal, "不知道")
+
+passed, failed = 0, []                           # 计分器：通过数、失败清单
+
 for goal, must in CASES:                        # 一条一条考
     reply = run_agent(goal)                     # 让 Agent 回答
     if must in reply:                           # 回答里出现了关键词
@@ -627,6 +654,7 @@ print("答案：", run(args.goal))                  # 调主流程，打印最�
 [1] get_weather → {'city': '常州', 'rain': True}
 [2] 结论：带伞
 答案： 带伞</pre></div>
+  <p><code>run()</code> 的定义在同一个 <code>agent.py</code> 的前半部分（上一章的主循环），这里只截入口，不重复贴。</p>
 
   <h2><span class="sec-no">7.2</span>交付前检查表 <span class="badge a">A</span></h2>
   <table>
