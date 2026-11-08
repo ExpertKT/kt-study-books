@@ -239,7 +239,10 @@ sequenceDiagram
   </div>
 
   <h2><span class="sec-no">1.1</span>带上编号 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">sessions.py</span><pre>db.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT)")  # 建表，多一列“会话编号”
+  <div class="code"><span class="label">sessions.py</span><pre>import sqlite3                                   # 自带数据库
+db = sqlite3.connect(":memory:")                  # 内存库：本节的演示数据
+
+db.execute("CREATE TABLE messages (session_id TEXT, role TEXT, content TEXT)")  # 建表，多一列“会话编号”
 
 db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "user", "我每天学多久？"))        # s1 的提问
 db.execute("INSERT INTO messages VALUES (?, ?, ?)", ("s1", "assistant", "40 分钟。"))         # s1 的回答
@@ -266,6 +269,7 @@ history = db.execute(                            # 读这个会话的历史
 
 db.execute("INSERT INTO messages VALUES (?, ?, ?)", (session_id, "user", body["prompt"]))  # 写入这一轮提问
 
+reply = answer(body["prompt"])                   # 调上一章的业务函数，拿到回答
 data = json.dumps({"session_id": session_id, "reply": reply}, ensure_ascii=False).encode("utf-8")  # 回包里带编号</pre></div>
   <p>响应里把 <code>session_id</code> 带回去，客户端下次请求时原样传回来。没带编号的请求当作新用户，不会读到别人的历史。</p>
 
@@ -305,7 +309,8 @@ data = json.dumps({"session_id": session_id, "reply": reply}, ensure_ascii=False
   </div>
 
   <h2><span class="sec-no">2.1</span>闸机 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">limit.py</span><pre>limit = threading.Semaphore(2)                  # 闸机：同时最多放两个
+  <div class="code"><span class="label">limit.py</span><pre>import time                                      # 用来模拟“干活耗时”
+limit = threading.Semaphore(2)                  # 闸机：同时最多放两个
 state = {"running": 0, "peak": 0}               # 当前在跑几个、历史峰值
 lock = threading.Lock()                         # 保护这两个计数，别互相覆盖
 
@@ -528,7 +533,8 @@ def call(prompt):                                # 一次调用
   </div>
 
   <h2><span class="sec-no">6.1</span>先拆再干 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">multi.py</span><pre>def plan(goal):                                  # 把目标拆成几步
+  <div class="code"><span class="label">multi.py</span><pre>GOAL = "写一份本周学习计划"                       # 这次要完成的目标
+def plan(goal):                                  # 把目标拆成几步
     if "计划" in goal:                           # 是“做计划”类任务
         return ["统计上周时长", "找出最弱的科目", "安排下周重点"]  # 三步
     return ["直接回答"]                           # 其他任务不拆
