@@ -158,53 +158,53 @@ html[data-theme="dark"] .cover-sub{color:#c3c0b6}
 
   <h2><span class="sec-no">0.1</span>第一步：读进来 <span class="badge b">B</span></h2>
   <p>CSV 就是“用逗号分隔的表格”，第一行是表头。Python 自带 <code>csv</code>，不用装库。</p>
-  <div class="code"><span class="label">pipeline.py</span><pre>import csv
-from pathlib import Path
+  <div class="code"><span class="label">pipeline.py</span><pre>import csv                                       # 读 CSV
+from pathlib import Path                         # 处理路径
 
-rows = []
-with open("data/study.csv", encoding="utf-8", newline="") as file:
-    for row in csv.DictReader(file):        # 每一行变成一个字典
-        rows.append({
-            "subject": row["科目"],          # 表头叫“科目”，就按这个名字取值
-            "minutes": int(row["时长分钟"]),  # 表格里是文字，转成整数
-            "accuracy": float(row["正确率"]), # 转成小数
-        })
+rows = []                                        # 存所有行
+with open("data/study.csv", encoding="utf-8", newline="") as file:  # 打开表格，用完自动关
+    for row in csv.DictReader(file):             # 每一行变成一个字典
+        rows.append({                            # 用字典装一行
+            "subject": row["科目"],               # 按表头“科目”取值
+            "minutes": int(row["时长分钟"]),       # 文字转整数
+            "accuracy": float(row["正确率"]),      # 文字转小数
+        })                                       # 一行结束
 
-print(len(rows))
-print(rows[0])</pre></div>
+print(len(rows))                                 # 一共几行
+print(rows[0])                                   # 看第一行长什么样</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>10
 {'subject': '算法', 'minutes': 45, 'accuracy': 0.8}</pre></div>
   <p><code>csv.DictReader</code> 做的事：把表头当键，把每行当值，交给你一串字典。表格里的数字读进来仍然是<strong>文字</strong>，所以要 <code>int()</code>、<code>float()</code> 转一次。</p>
 
   <h2><span class="sec-no">0.2</span>第二步：算一算 <span class="badge b">B</span></h2>
   <p>按科目分组，各算平均。分组的动作是“以科目为键，把同类行塞进同一个列表”。</p>
-  <div class="code"><span class="label">pipeline.py（接着写）</span><pre>by_subject = {}
-for row in rows:
-    by_subject.setdefault(row["subject"], []).append(row)
+  <div class="code"><span class="label">pipeline.py（接着写）</span><pre>by_subject = {}                                  # 按科目分组的容器
+for row in rows:                                 # 每行看一遍
+    by_subject.setdefault(row["subject"], []).append(row)  # 该科目的列表不存在就新建，再塞进去
 
-summary = {}
-for name, group in by_subject.items():
-    summary[name] = {
-        "count": len(group),
-        "avg_min": round(sum(r["minutes"] for r in group) / len(group), 1),
-        "avg_acc": round(sum(r["accuracy"] for r in group) / len(group), 3),
-    }
+summary = {}                                     # 每科的统计结果
+for name, group in by_subject.items():           # 一科一科算
+    summary[name] = {                            # 每科一份统计
+        "count": len(group),                     # 这个科目有几天
+        "avg_min": round(sum(r["minutes"] for r in group) / len(group), 1),   # 平均时长，留一位小数
+        "avg_acc": round(sum(r["accuracy"] for r in group) / len(group), 3),  # 平均正确率，留三位
+    }                                            # 这份统计结束
 
-print(summary)</pre></div>
+print(summary)                                   # 打印整份统计</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>{'算法': {'count': 5, 'avg_min': 36.0, 'avg_acc': 0.71}, 'Python': {'count': 5, 'avg_min': 50.0, 'avg_acc': 0.816}}</pre></div>
   <p>结果读法：算法练了 5 天、平均 36 分钟、平均正确率 0.710；Python 5 天、50 分钟、0.816。也就是说 Python 花的时间更长，正确率也更高。</p>
 
   <h2><span class="sec-no">0.3</span>第三步：写出去 <span class="badge b">B</span></h2>
   <p>统计结果要留着下次用，写成一个 JSON 文件。JSON 就是“带引号的键值对文本”，几乎所有程序都能读。</p>
-  <div class="code"><span class="label">pipeline.py（收尾）</span><pre>import json
+  <div class="code"><span class="label">pipeline.py（收尾）</span><pre>import json                                      # 写 JSON 文件
 
-result = {"total_min": sum(r["minutes"] for r in rows), "subjects": summary}
-Path("results").mkdir(exist_ok=True)
-Path("results/summary.json").write_text(
-    json.dumps(result, ensure_ascii=False, indent=2),
-    encoding="utf-8",
-)
-print(result["total_min"])</pre></div>
+result = {"total_min": sum(r["minutes"] for r in rows), "subjects": summary}  # 总时长 + 各科统计
+Path("results").mkdir(exist_ok=True)             # 建结果目录；已存在也不报错
+Path("results/summary.json").write_text(         # 写文件
+    json.dumps(result, ensure_ascii=False, indent=2),  # 中文原样保留，缩进 2 格
+    encoding="utf-8",                            # 按 UTF-8 写
+)                                                # 写文件结束
+print(result["total_min"])                       # 打印总时长</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>430</pre></div>
   <p><code>ensure_ascii=False</code> 让中文原样写出，而不是变成 <code>\u7b97\u6cd5</code>；<code>indent=2</code> 让文件有缩进，人能直接读。</p>
 
@@ -258,18 +258,18 @@ print(result["total_min"])</pre></div>
 
   <h2><span class="sec-no">1.2</span>怎么算“像” <span class="badge b">B</span></h2>
   <p>用余弦相似度：把两个向量当成两支箭，看它们指向是否一致。方向一致得 1，垂直得 0，相反得 -1。</p>
-  <div class="code"><span class="label">similarity.py</span><pre>import math
+  <div class="code"><span class="label">similarity.py</span><pre>import math                                      # 算平方根
 
-def cosine(a, b):
+def cosine(a, b):                                # 两支“箭”的相似度
     dot = sum(x * y for x, y in zip(a, b))        # 对应位置相乘再相加
     na = math.sqrt(sum(x * x for x in a))         # 第一支箭的长度
     nb = math.sqrt(sum(y * y for y in b))         # 第二支箭的长度
-    return dot / (na * nb)
+    return dot / (na * nb)                        # 点积除以两个长度
 
-vectors = {"算法练习": [3, 1, 0], "刷算法题": [2, 2, 0], "背单词": [0, 1, 3]}
-base = vectors["算法练习"]
-for name, vec in vectors.items():
-    print(name, round(cosine(base, vec), 3))</pre></div>
+vectors = {"算法练习": [3, 1, 0], "刷算法题": [2, 2, 0], "背单词": [0, 1, 3]}  # 三条句子的向量
+base = vectors["算法练习"]                        # 拿它做基准
+for name, vec in vectors.items():                # 每一条都跟它比
+    print(name, round(cosine(base, vec), 3))     # 打印名字和相似度，留三位</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>算法练习 1.0
 刷算法题 0.894
 背单词 0.1</pre></div>
@@ -319,30 +319,30 @@ for name, vec in vectors.items():
 
   <h2><span class="sec-no">2.1</span>先把数据摆平 <span class="badge a">A</span></h2>
   <p>时长在 20 到 70 之间，正确率在 0.55 到 0.95 之间。两个数单位差得远，直接算会让“时长”压过“正确率”。所以先做<strong>标准化</strong>：减均值、除标准差，把两边都变成“离平均有几个身位”。</p>
-  <div class="code"><span class="label">fit_line.py</span><pre>import numpy as np
+  <div class="code"><span class="label">fit_line.py</span><pre>import numpy as np                               # 数值计算库
 
-x = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)
-y = np.array([0.80, 0.70, 0.90, 0.60, 0.85, 0.75, 0.65, 0.95, 0.55, 0.88], dtype=float)
+x = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)  # 学习时长
+y = np.array([0.80, 0.70, 0.90, 0.60, 0.85, 0.75, 0.65, 0.95, 0.55, 0.88], dtype=float)  # 正确率
 
-x_mean, x_std = x.mean(), x.std()
-y_mean, y_std = y.mean(), y.std()
-xs = (x - x_mean) / x_std            # 标准化后的时长
-ys = (y - y_mean) / y_std            # 标准化后的正确率</pre></div>
+x_mean, x_std = x.mean(), x.std()                # 时长的平均值、标准差
+y_mean, y_std = y.mean(), y.std()                # 正确率的平均值、标准差
+xs = (x - x_mean) / x_std                        # 标准化后的时长
+ys = (y - y_mean) / y_std                        # 标准化后的正确率</pre></div>
   <p>标准化不改变规律，只是换了一把尺子。</p>
 
   <h2><span class="sec-no">2.2</span>一根绳子 = 两个参数 <span class="badge a">A</span></h2>
   <p>直线写成 <code>预测值 = w * 输入 + b</code>。<code>w</code> 管倾斜，<code>b</code> 管上下平移。机器“学”，学的就是这两个数。</p>
-  <div class="code"><span class="label">fit_line.py（训练）</span><pre>w, b = 0.0, 0.0
+  <div class="code"><span class="label">fit_line.py（训练）</span><pre>w, b = 0.0, 0.0                           # 绳子的两个参数，先都设 0
 lr = 0.1                                   # 学习率：每步迈多大
-for step in range(200):
+for step in range(200):                    # 走 200 步
     pred = w * xs + b                      # 当前绳子的预测
     loss = ((pred - ys) ** 2).mean()       # 所有钉子到绳子的平均平方距离
-    dw = 2 * ((pred - ys) * xs).mean()     # 往哪边调 w 更陡
-    db = 2 * (pred - ys).mean()            # 往哪边调 b 更陡
+    dw = 2 * ((pred - ys) * xs).mean()     # w 往哪边调更陡
+    db = 2 * (pred - ys).mean()            # b 往哪边调更陡
     w -= lr * dw                           # 朝下坡方向迈一步
-    b -= lr * db
-    if step % 50 == 0:
-        print(f"step {step:3d} loss {loss:.4f}")</pre></div>
+    b -= lr * db                           # b 同样往低处走
+    if step % 50 == 0:                     # 每 50 步
+        print(f"step {step:3d} loss {loss:.4f}")  # 打印进度和误差</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>step   0 loss 1.0000
 step  50 loss 0.1501
 step 100 loss 0.1501
@@ -350,11 +350,11 @@ step 150 loss 0.1501</pre></div>
   <p>损失从 1.0000 掉到 0.1501，前 50 步就把能降的都降完了。剩下的 0.1501 是数据本身的抖动，直线贴不成完美。</p>
 
   <h2><span class="sec-no">2.3</span>翻译回你熟悉的单位 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">fit_line.py（换算与预测）</span><pre>slope = w * y_std / x_std
-intercept = y_mean + y_std * b - slope * x_mean
-print(f"正确率 ≈ {slope:.4f} * 时长 + {intercept:.3f}")
-print(f"学 40 分钟，预测正确率 {slope * 40 + intercept:.2f}")
-print(f"学 70 分钟，预测正确率 {slope * 70 + intercept:.2f}")</pre></div>
+  <div class="code"><span class="label">fit_line.py（换算与预测）</span><pre>slope = w * y_std / x_std                       # 把标准化的 w 换回“每多一分钟涨多少”
+intercept = y_mean + y_std * b - slope * x_mean # 换回原始单位的截距
+print(f"正确率 ≈ {slope:.4f} * 时长 + {intercept:.3f}")  # 打印直线方程
+print(f"学 40 分钟，预测正确率 {slope * 40 + intercept:.2f}")  # 代进去算
+print(f"学 70 分钟，预测正确率 {slope * 70 + intercept:.2f}")  # 再算一个</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>最终 w=0.922 b=-0.000
 正确率 ≈ 0.0078 * 时长 + 0.428
 学 40 分钟，预测正确率 0.74
@@ -402,48 +402,48 @@ print(f"学 70 分钟，预测正确率 {slope * 70 + intercept:.2f}")</pre></di
 
   <h2><span class="sec-no">3.1</span>先定“及格”是什么 <span class="badge a">A</span></h2>
   <p>正确率 ≥ 0.7 记 1（及格），否则记 0。这样“数值预测”就变成了“是 / 否”。</p>
-  <div class="code"><span class="label">classify.py</span><pre>import numpy as np
+  <div class="code"><span class="label">classify.py</span><pre>import numpy as np                               # 数值计算
 
-minutes = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)
-passed = np.array([1, 1, 1, 0, 1, 1, 0, 1, 0, 1], dtype=float)
+minutes = np.array([45, 30, 60, 25, 50, 40, 35, 55, 20, 70], dtype=float)  # 学习时长
+passed = np.array([1, 1, 1, 0, 1, 1, 0, 1, 0, 1], dtype=float)             # 1=及格，0=不及格
 
-x_mean, x_std = minutes.mean(), minutes.std()
-xs = (minutes - x_mean) / x_std
+x_mean, x_std = minutes.mean(), minutes.std()    # 时长的均值、标准差
+xs = (minutes - x_mean) / x_std                  # 标准化
 
 
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))      # 把任意数压到 0~1，当作概率</pre></div>
+def sigmoid(z):                                  # 把任意数压到 0~1
+    return 1 / (1 + np.exp(-z))                  # 结果可以当概率读</pre></div>
   <p><code>sigmoid</code> 的作用：原始输出可能是 -3 或 +5，压到 0 到 1 之间，才能当概率读。</p>
 
   <h2><span class="sec-no">3.2</span>画线：训练 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">classify.py（训练）</span><pre>def train(xs, ys, lr=0.5, steps=300):
-    w, b = 0.0, 0.0
-    for _ in range(steps):
-        p = sigmoid(w * xs + b)          # 当前判断“及格”的概率
-        dw = ((p - ys) * xs).mean()      # 预测偏乐观还是偏悲观，往反方向调
-        db = (p - ys).mean()
-        w -= lr * dw
-        b -= lr * db
-    return w, b</pre></div>
+  <div class="code"><span class="label">classify.py（训练）</span><pre>def train(xs, ys, lr=0.5, steps=300):            # 输入、标签、学习率、步数
+    w, b = 0.0, 0.0                              # 分界线的两个参数
+    for _ in range(steps):                       # 走 300 步
+        p = sigmoid(w * xs + b)                  # 当前判“及格”的概率
+        dw = ((p - ys) * xs).mean()              # 预测偏乐观还是偏悲观，往反方向调
+        db = (p - ys).mean()                     # b 的调整量
+        w -= lr * dw                             # 更新 w
+        b -= lr * db                             # 更新 b
+    return w, b                                  # 交回训练好的两个数</pre></div>
   <p>和上一章的梯度下降同一个套路，只是把“平方误差”换成了“概率误差”。</p>
 
   <h2><span class="sec-no">3.3</span>练习题与考试题 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">classify.py（划分与评估）</span><pre>train_mask = np.array([True]*7 + [False]*3)   # 前 7 条用来学
-test_mask = ~train_mask                        # 后 3 条用来验
+  <div class="code"><span class="label">classify.py（划分与评估）</span><pre>train_mask = np.array([True]*7 + [False]*3)      # 前 7 条用来学
+test_mask = ~train_mask                          # 后 3 条用来验
 
-w, b = train(xs[train_mask], passed[train_mask])
+w, b = train(xs[train_mask], passed[train_mask]) # 只用训练集学
 
-def predict(w, b, values):
-    p = sigmoid(w * values + b)
-    return (p &gt;= 0.5).astype(int), p           # 概率过半就判及格
+def predict(w, b, values):                       # 给新数据做预测
+    p = sigmoid(w * values + b)                  # 先算概率
+    return (p &gt;= 0.5).astype(int), p             # 概率过半就判 1，同时交回概率
 
-pred_train, _ = predict(w, b, xs[train_mask])
-pred_test, prob_test = predict(w, b, xs[test_mask])
-print(f"训练集准确率 {(pred_train == passed[train_mask]).mean():.0%}")
-print(f"测试集准确率 {(pred_test == passed[test_mask]).mean():.0%}")
-for m, p, t in zip(minutes[test_mask], prob_test, passed[test_mask]):
-    print(f"时长 {m:.0f} → 概率 {p:.2f}，预测 {int(p &gt;= 0.5)}，真实 {int(t)}")
-print(f"分界线约在 {x_mean + (-b / w) * x_std:.1f} 分钟")</pre></div>
+pred_train, _ = predict(w, b, xs[train_mask])    # 在训练集上预测
+pred_test, prob_test = predict(w, b, xs[test_mask])  # 在测试集上预测
+print(f"训练集准确率 {(pred_train == passed[train_mask]).mean():.0%}")  # 训练集命中率
+print(f"测试集准确率 {(pred_test == passed[test_mask]).mean():.0%}")    # 测试集命中率
+for m, p, t in zip(minutes[test_mask], prob_test, passed[test_mask]):   # 逐条对照
+    print(f"时长 {m:.0f} → 概率 {p:.2f}，预测 {int(p &gt;= 0.5)}，真实 {int(t)}")  # 逐条对照：时长 → 概率 → 预测 → 真实
+print(f"分界线约在 {x_mean + (-b / w) * x_std:.1f} 分钟")               # 概率 0.5 对应的时长</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>训练集 7 条，准确率 71%
 测试集 3 条，准确率 100%
 时长 55 → 概率 0.99，预测 1，真实 1
@@ -494,45 +494,45 @@ print(f"分界线约在 {x_mean + (-b / w) * x_std:.1f} 分钟")</pre></div>
 
   <h2><span class="sec-no">4.1</span>先在家开个“假厨房” <span class="badge a">A</span></h2>
   <p>没有 key 也能练。用标准库起一个本机服务，收到问题就按规则回一句。</p>
-  <div class="code"><span class="label">mock_llm.py</span><pre>import json, threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+  <div class="code"><span class="label">mock_llm.py</span><pre>import json, threading                            # JSON、线程
+from http.server import BaseHTTPRequestHandler, HTTPServer  # 请求基类、服务器
 
-class Handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        length = int(self.headers["Content-Length"])
-        body = json.loads(self.rfile.read(length))
-        prompt = body["prompt"]
-        if "时长" in prompt:
-            reply = "建议每天 40 分钟：先做题，再看讲解。"
-        else:
-            reply = "收到你的问题：" + prompt[:20]
-        data = json.dumps({"reply": reply}, ensure_ascii=False).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+class Handler(BaseHTTPRequestHandler):             # 处理请求
+    def do_POST(self):                             # 只接 POST
+        length = int(self.headers["Content-Length"])  # 请求体长度
+        body = json.loads(self.rfile.read(length)) # 读请求体转字典
+        prompt = body["prompt"]                    # 取出问题
+        if "时长" in prompt:                       # 问学习时长
+            reply = "建议每天 40 分钟：先做题，再看讲解。"  # 固定回答
+        else:                                      # 其他问题
+            reply = "收到你的问题：" + prompt[:20]   # 其他问题回声前 20 字
+        data = json.dumps({"reply": reply}, ensure_ascii=False).encode("utf-8")  # 组响应
+        self.send_response(200)                    # 状态码 200
+        self.send_header("Content-Type", "application/json; charset=utf-8")  # 响应类型
+        self.send_header("Content-Length", str(len(data)))  # 响应长度
+        self.end_headers()                         # 头结束
+        self.wfile.write(data)                     # 写回内容
 
-    def log_message(self, *args):
-        pass
+    def log_message(self, *args):                  # 覆盖默认日志
+        pass                                       # 不打印每条访问记录
 
-server = HTTPServer(("127.0.0.1", 18090), Handler)
-threading.Thread(target=server.serve_forever, daemon=True).start()</pre></div>
+server = HTTPServer(("127.0.0.1", 18090), Handler) # 绑定本机端口
+threading.Thread(target=server.serve_forever, daemon=True).start()  # 后台接待</pre></div>
 
   <h2><span class="sec-no">4.2</span>下单与收餐 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">mock_llm.py（接着写）</span><pre>import urllib.request
+  <div class="code"><span class="label">mock_llm.py（接着写）</span><pre>import urllib.request                             # 发 HTTP 请求
 
-def ask(prompt):
-    request = urllib.request.Request(
-        "http://127.0.0.1:18090/chat",                     # 厨房地址
-        data=json.dumps({"prompt": prompt}, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json"},      # 告诉对方：我送的是 JSON
-    )
-    with urllib.request.urlopen(request, timeout=3) as response:
-        return json.loads(response.read())["reply"]
+def ask(prompt):                                  # 问一句，拿回答
+    request = urllib.request.Request(             # 拼一次 POST 请求
+        "http://127.0.0.1:18090/chat",            # 厨房地址
+        data=json.dumps({"prompt": prompt}, ensure_ascii=False).encode("utf-8"),  # 请求体
+        headers={"Content-Type": "application/json"},  # 声明送的是 JSON
+    )                                             # 请求拼好
+    with urllib.request.urlopen(request, timeout=3) as response:  # 发送，最多等 3 秒
+        return json.loads(response.read())["reply"]  # 解码并取 reply
 
-print(ask("我每天学习时长多少合适？"))
-server.shutdown()</pre></div>
+print(ask("我每天学习时长多少合适？"))             # 试问一句
+server.shutdown()                                 # 用完关掉服务</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>建议每天 40 分钟：先做题，再看讲解。</pre></div>
 
   <h2><span class="sec-no">4.3</span>换成真实接口要改哪三处 <span class="badge b">B</span></h2>
@@ -584,33 +584,33 @@ server.shutdown()</pre></div>
 
   <h2><span class="sec-no">5.1</span>自由发挥 vs 交表格 <span class="badge a">A</span></h2>
   <p>先看自由发挥的后果：返回的是一句话，<code>json.loads</code> 直接失败。</p>
-  <div class="code"><span class="label">structured.py</span><pre>import json
+  <div class="code"><span class="label">structured.py</span><pre>import json                                      # 解析 JSON
 
-def fake_model(prompt, strict=False):
-    if strict:
-        return '{"subject": "算法", "minutes": 45}'
-    return "我猜是算法，45 分钟吧"
+def fake_model(prompt, strict=False):             # 模拟模型
+    if strict:                                   # 被要求“只输出 JSON”
+        return '{"subject": "算法", "minutes": 45}'  # 给出合规结构
+    return "我猜是算法，45 分钟吧"                 # 默认自由发挥
 
-text = fake_model("帮我提取：今天做了 45 分钟算法")
-print(text)
-json.loads(text)          # 这一行会抛 JSONDecodeError</pre></div>
+text = fake_model("帮我提取：今天做了 45 分钟算法")  # 第一次问
+print(text)                                      # 打印原始返回
+json.loads(text)                                 # 尝试解析；这一行会抛 JSONDecodeError</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>我猜是算法，45 分钟吧
 json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</pre></div>
 
   <h2><span class="sec-no">5.2</span>加一句“只输出 JSON”，失败就重试 <span class="badge a">A</span></h2>
   <p>重试不是碰运气，而是把要求说得更死。真实调用时还可以降低随机性（temperature 设 0）。</p>
-  <div class="code"><span class="label">structured.py（完整）</span><pre>def extract(prompt):
-    text = fake_model(prompt)
-    try:
-        return json.loads(text), text
-    except json.JSONDecodeError:
-        strict_prompt = prompt + "\n只输出 JSON，不要解释。"
-        text2 = fake_model(strict_prompt, strict=True)
-        return json.loads(text2), text2
+  <div class="code"><span class="label">structured.py（完整）</span><pre>def extract(prompt):                             # 提取字段的完整流程
+    text = fake_model(prompt)                    # 第一次按原样问
+    try:                                         # 先试着按 JSON 解析
+        return json.loads(text), text            # 能解析就直接用
+    except json.JSONDecodeError:                 # 解析失败
+        strict_prompt = prompt + "\n只输出 JSON，不要解释。"  # 把要求说得更死
+        text2 = fake_model(strict_prompt, strict=True)        # 再问一次
+        return json.loads(text2), text2          # 这次应该能解析
 
-result, raw = extract("帮我从这句话里提取：今天做了 45 分钟算法")
-print("第二次返回：", raw)
-print("取用字段：科目 =", result["subject"], "，时长 =", result["minutes"])</pre></div>
+result, raw = extract("帮我从这句话里提取：今天做了 45 分钟算法")  # 跑一遍
+print("第二次返回：", raw)                        # 打印模型原文
+print("取用字段：科目 =", result["subject"], "，时长 =", result["minutes"])  # 按字段取值</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>第一次返回：我猜是算法，45 分钟吧
 解析失败，加一句“只输出 JSON”再问
 第二次返回： {"subject": "算法", "minutes": 45}
@@ -661,42 +661,42 @@ print("取用字段：科目 =", result["subject"], "，时长 =", result["minut
 
   <h2><span class="sec-no">6.1</span>先给它几件工具 <span class="badge a">A</span></h2>
   <p>工具就是普通函数：收参数、给结果。名字、参数、返回值都要写清楚，模型才知道什么时候该用哪个。</p>
-  <div class="code"><span class="label">agent.py</span><pre>def get_weather(args):
-    return {"city": args["city"], "rain": True}
+  <div class="code"><span class="label">agent.py</span><pre>def get_weather(args):                           # 工具一：查天气
+    return {"city": args["city"], "rain": True}  # 返回城市和是否下雨
 
-def plan_trip(args):
-    return "带伞" if args["rain"] else "不用带伞"
+def plan_trip(args):                             # 工具二：给建议
+    return "带伞" if args["rain"] else "不用带伞"  # 看有没有雨
 
-TOOLS = {"get_weather": get_weather, "plan_trip": plan_trip}</pre></div>
+TOOLS = {"get_weather": get_weather, "plan_trip": plan_trip}  # 工具表：名字 → 函数</pre></div>
 
   <h2><span class="sec-no">6.2</span>循环：想、做、看 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">agent.py（循环）</span><pre>import json, sqlite3
+  <div class="code"><span class="label">agent.py（循环）</span><pre>import json, sqlite3                              # JSON、数据库
 
-state = {"city": "常州", "rain": None, "advice": None}
-db = sqlite3.connect(":memory:")
-db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")
+state = {"city": "常州", "rain": None, "advice": None}  # 状态：知道什么、还缺什么
+db = sqlite3.connect(":memory:")                  # 内存数据库，放本次的步骤
+db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")  # 建步骤表
 
-for step in range(1, 6):                      # 最多五步
-    if state["rain"] is None:
-        action, args = "get_weather", {"city": state["city"]}
-    elif state["advice"] is None:
-        action, args = "plan_trip", {"rain": state["rain"]}
-    else:
-        break                                  # 事情办完，退出
+for step in range(1, 6):                          # 最多五步
+    if state["rain"] is None:                     # 还不知道天气
+        action, args = "get_weather", {"city": state["city"]}  # 先查天气
+    elif state["advice"] is None:                 # 知道天气，但还没给建议
+        action, args = "plan_trip", {"rain": state["rain"]}    # 再给建议
+    else:                                        # 天气、建议都齐了
+        break                                     # 都齐了，退出
 
-    result = TOOLS[action](args)               # 真正动手
-    if action == "get_weather":
-        state["rain"] = result["rain"]          # 把结果记进状态
-    else:
-        state["advice"] = result
+    result = TOOLS[action](args)                  # 真正调用工具
+    if action == "get_weather":                   # 这次调的是天气工具
+        state["rain"] = result["rain"]            # 把天气写进状态
+    else:                                         # 否则是建议工具
+        state["advice"] = result                  # 把建议写进状态
 
-    print(f"[{step}] 调工具 {action}({json.dumps(args, ensure_ascii=False)}) → {json.dumps(result, ensure_ascii=False)}")
-    db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, json.dumps(result, ensure_ascii=False)))
+    print(f"[{step}] 调工具 {action}({json.dumps(args, ensure_ascii=False)}) → {json.dumps(result, ensure_ascii=False)}")  # 打印这一步的输入和输出
+    db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, json.dumps(result, ensure_ascii=False)))  # 记一行
 
-db.commit()
-answer = f"明天{state['city']}有雨，出门{state['advice']}"
-print(f"[{step}] 结束：{answer}")
-print("日志：", db.execute("SELECT step, action FROM steps").fetchall())</pre></div>
+db.commit()                                       # 提交日志
+answer = f"明天{state['city']}有雨，出门{state['advice']}"  # 拼最终答案
+print(f"[{step}] 结束：{answer}")                   # 打印
+print("日志：", db.execute("SELECT step, action FROM steps").fetchall())  # 查回日志</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>[1] 调工具 get_weather({"city": "常州"}) → {"city": "常州", "rain": true}
 [2] 调工具 plan_trip({"rain": true}) → "带伞"
 [3] 结束：明天常州有雨，出门带伞
@@ -718,23 +718,23 @@ flowchart TD
 
   <h2><span class="sec-no">6.3</span>模型真的会选工具 <span class="badge a">A</span></h2>
   <p>6.2 里的 <code>decide()</code> 是写死的规则。真实协议里，是<strong>模型</strong>返回一个工具调用，你的程序解析、执行、再把结果喂回去。</p>
-  <div class="code"><span class="label">tool_call_demo.py</span><pre>def model(messages):
-    if len(messages) == 1:
-        return {"tool_call": {"name": "get_weather", "arguments": {"city": "常州"}}}
-    return {"content": "明天常州有雨，带伞。"}
+  <div class="code"><span class="label">tool_call_demo.py</span><pre>def model(messages):                             # 模拟“真实接口”的模型
+    if len(messages) == 1:                       # 只收到一句问题时
+        return {"tool_call": {"name": "get_weather", "arguments": {"city": "常州"}}}  # 返回工具调用
+    return {"content": "明天常州有雨，带伞。"}      # 之后直接给答案
 
-messages = [{"role": "user", "content": "明天要不要带伞？"}]
-for step in range(1, 4):
-    reply = model(messages)
-    if "tool_call" in reply:
-        call = reply["tool_call"]
-        print(f"[{step}] 模型要求调用 {call['name']}(...)")
-        result = TOOLS[call["name"]](call["arguments"])
-        messages.append({"role": "assistant", "content": json.dumps(reply, ensure_ascii=False)})
-        messages.append({"role": "tool", "name": call["name"], "content": json.dumps(result, ensure_ascii=False)})
-    else:
-        print(f"[{step}] 模型最终回答：{reply['content']}")
-        break</pre></div>
+messages = [{"role": "user", "content": "明天要不要带伞？"}]  # 对话起点
+for step in range(1, 4):                         # 最多走三步
+    reply = model(messages)                      # 问模型下一步
+    if "tool_call" in reply:                     # 它要调工具
+        call = reply["tool_call"]                # 取出名字和参数
+        print(f"[{step}] 模型要求调用 {call['name']}(...)")  # 打印
+        result = TOOLS[call["name"]](call["arguments"])      # 执行
+        messages.append({"role": "assistant", "content": json.dumps(reply, ensure_ascii=False)})  # 记下这次调用
+        messages.append({"role": "tool", "name": call["name"], "content": json.dumps(result, ensure_ascii=False)})  # 记下结果
+    else:                                        # 模型没要求调工具
+        print(f"[{step}] 模型最终回答：{reply['content']}")  # 打印最终答案
+        break                                    # 没有下一步动作，结束循环</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>[1] 模型要求调用 get_weather({"city": "常州"})
 [2] 模型最终回答：明天常州有雨，带伞。</pre></div>
   <p>和 6.2 的区别：动作不是代码里判定的，而是模型返回的；程序只负责执行和白名单校验。接真实接口时，这个结构对应 <code>tool_calls</code> 字段，流程一模一样。</p>
@@ -757,12 +757,12 @@ for step in range(1, 4):
 
   <h2><span class="sec-no">6.4</span>为什么一定要日志 <span class="badge b">B</span></h2>
   <p>Agent 出错时，你看到的只是“答得不对”。要知道哪一步开始错，只能靠日志：调了哪个工具、参数是什么、回了什么、第几步。写进 sqlite，事后能查。</p>
-  <div class="code"><span class="label">agent.py（日志）</span><pre>import sqlite3
-db = sqlite3.connect(":memory:")
-db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")
-db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, str(result)))
-db.commit()
-print(db.execute("SELECT step, action FROM steps").fetchall())</pre></div>
+  <div class="code"><span class="label">agent.py（日志）</span><pre>import sqlite3                                    # 数据库
+db = sqlite3.connect(":memory:")                  # 内存库，退出即消失
+db.execute("CREATE TABLE steps (step INTEGER, action TEXT, result TEXT)")  # 建步骤表
+db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, str(result)))  # 记一步
+db.commit()                                       # 提交
+print(db.execute("SELECT step, action FROM steps").fetchall())  # 查回来核对</pre></div>
 
   <table>
     <tr><th>词</th><th>人话</th></tr>
@@ -802,19 +802,19 @@ print(db.execute("SELECT step, action FROM steps").fetchall())</pre></div>
   </div>
 
   <h2><span class="sec-no">7.1</span>卷子和评分标准 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">evaluate.py（节选：题目只列前五条）</span><pre>CASES = [
-    ("学习 45 分钟算法够吗？", "40 分钟"),
-    ("我每天学多久？", "40 分钟"),
-    ("算法怎么练？", "先做题"),
-    ...
-]
+  <div class="code"><span class="label">evaluate.py（节选：题目只列前五条）</span><pre>CASES = [                                        # 卷子：问题 + 必须出现的关键词
+    ("学习 45 分钟算法够吗？", "40 分钟"),          # 第 1 题：问学习时长
+    ("我每天学多久？", "40 分钟"),                  # 第 2 题：换一种问法，答案应相同
+    ("算法怎么练？", "先做题"),                     # 第 3 题：问练习方法
+    ...                                          # 其余题目省略，结构与上面一致
+]                                                # 卷子结束
 
-for prompt, must_contain in CASES:
-    reply = answer(prompt)
-    if must_contain in reply:
-        passed += 1
-    else:
-        failed.append((prompt, must_contain, reply))</pre></div>
+for prompt, must_contain in CASES:               # 一条一条考
+    reply = answer(prompt)                       # 让 Agent 回答
+    if must_contain in reply:                    # 命中关键词
+        passed += 1                              # 算通过
+    else:                                        # 没命中关键词
+        failed.append((prompt, must_contain, reply))  # 记下失败三件套</pre></div>
   <p>评分标准故意写得简单：回复里必须出现某个关键词。关键词写得太宽，什么都能过；写得太窄，正确回答也会被判错。这一条本身就是需要打磨的地方。</p>
 
   <h2><span class="sec-no">7.2</span>跑一遍，看分数 <span class="badge b">B</span></h2>
@@ -874,9 +874,9 @@ for prompt, must_contain in CASES:
   </table>
 
   <h2><span class="sec-no">A.2</span>环境与命令</h2>
-  <div class="code"><span class="label">每次开始</span><pre>cd "$HOME\Desktop\stage2-ml-llm"
-$env:PYTHONUTF8='1'
-.\.venv\Scripts\python.exe check_env.py</pre></div>
+  <div class="code"><span class="label">每次开始</span><pre>cd "$HOME\Desktop\stage2-ml-llm"               # 切到阶段二目录
+$env:PYTHONUTF8='1'                             # 让控制台按 UTF-8 输出中文
+.\.venv\Scripts\python.exe check_env.py         # 用虚拟环境里的 Python 检查依赖</pre></div>
   <p>看到 Python 版本、numpy 2.5.4、数据文件“存在”，就可以开跑。</p>
 
   <h2><span class="sec-no">A.3</span>下一步：把八章拼成一个东西</h2>
