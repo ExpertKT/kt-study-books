@@ -694,8 +694,8 @@ for step in range(1, 6):                          # 最多五步
     db.execute("INSERT INTO steps VALUES (?, ?, ?)", (step, action, json.dumps(result, ensure_ascii=False)))  # 记一行
 
 db.commit()                                       # 提交日志
-answer = f"明天{state['city']}有雨，出门{state['advice']}"  # 拼最终答案
-print(f"[{step}] 结束：{answer}")                   # 打印
+final = f"明天{state['city']}有雨，出门{state['advice']}"  # 拼最终答案
+print(f"[{step}] 结束：{final}")                   # 打印
 print("日志：", db.execute("SELECT step, action FROM steps").fetchall())  # 查回日志</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>[1] 调工具 get_weather({"city": "常州"}) → {"city": "常州", "rain": true}
 [2] 调工具 plan_trip({"rain": true}) → "带伞"
@@ -808,6 +808,19 @@ print(db.execute("SELECT step, action FROM steps").fetchall())  # 查回来核�
     ("算法怎么练？", "先做题"),                     # 第 3 题：问练习方法
     ...                                          # 其余题目省略，结构与上面一致
 ]                                                # 卷子结束
+
+CANNED = {                                       # 假模型：问题 → 回答
+    "学习 45 分钟算法够吗？": "每天 40 分钟，先做题再看讲解。", "我每天学多久？": "建议每天 40 分钟，固定时段。",
+    "算法怎么练？": "先做题，再看讲解，最后重写一遍。", "正确率低怎么办？": "回看讲解，把错题重做。",
+    "Python 要学多久？": "每天 40 分钟，坚持四周。", "怎么安排复习？": "每天十分钟回顾昨天的错题。",
+    "刷题顺序？": "先易后难，按题型分组。", "要不要背语法？": "用起来就记住了，别单独背。",
+    "一天学两小时行吗？": "可以，但别超过 40 分钟不休息。", "考试前怎么突击？": "只看错题，不再刷新题。",
+}
+
+def answer(prompt):                              # 按问题查表，查不到就说不知道
+    return CANNED.get(prompt, "这个问题我暂时答不上来。")
+
+passed, failed = 0, []                            # 计分器：通过数、失败清单
 
 for prompt, must_contain in CASES:               # 一条一条考
     reply = answer(prompt)                       # 让 Agent 回答
