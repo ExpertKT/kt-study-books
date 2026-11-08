@@ -215,32 +215,32 @@ html[data-theme="dark"] .cover-sub{color:#c3c0b6}
   <div class="code"><span class="label">word_counts.py</span><pre>import sys                                      # 读命令行参数、设置退出码
 from pathlib import Path                        # 处理路径
 
-DEFAULT_FILE = Path(__file__).parent / "sandbox" / "words.txt"
+DEFAULT_FILE = Path(__file__).parent / "sandbox" / "words.txt"  # 没给路径时读这个文件
 
 
 def count_words(text):                          # 给一段文字，交回每个词的次数
     counts = {}                                 # 词是键，次数是值
     for word in text.lower().split():           # 统一小写，再按空白切词
-        counts[word] = counts.get(word, 0) + 1
-    return counts
+        counts[word] = counts.get(word, 0) + 1  # 没见过的词按 0 算，再加一
+    return counts                               # 交回整张词频表
 
 
-def main():
-    file_path = Path(sys.argv[1]) if len(sys.argv) &gt; 1 else DEFAULT_FILE
-    if not file_path.exists():
-        print("找不到文件：", file_path)
-        sys.exit(1)
-    text = file_path.read_text(encoding="utf-8")
-    print("词频：", count_words(text))
+def main():                                     # 程序入口
+    file_path = Path(sys.argv[1]) if len(sys.argv) &gt; 1 else DEFAULT_FILE  # 有参数就用参数，否则用默认文件
+    if not file_path.exists():                  # 文件不存在
+        print("找不到文件：", file_path)         # 如实告诉用户
+        sys.exit(1)                             # 非零退出码 = 失败
+    text = file_path.read_text(encoding="utf-8")  # 一次读完整份文件
+    print("词频：", count_words(text))           # 打印结果
 
 
-if __name__ == "__main__":
-    main()</pre></div>
+if __name__ == "__main__":                      # 只有直接运行这个文件才执行
+    main()                                      # 调用入口</pre></div>
 
   <h2><span class="sec-no">0.4</span>跑起来</h2>
-  <div class="code"><span class="label">PowerShell</span><pre>cd "$HOME\Desktop\stage1-data-structures"
-$env:PYTHONUTF8='1'
-python word_counts.py; "exit=$LASTEXITCODE"</pre></div>
+  <div class="code"><span class="label">PowerShell</span><pre>cd "$HOME\Desktop\stage1-data-structures"      # 切到代码目录
+$env:PYTHONUTF8='1'                            # 让控制台按 UTF-8 输出中文
+python word_counts.py; "exit=$LASTEXITCODE"    # 跑脚本，再打印退出码</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>词频： {'agent': 3, 'tool': 2, 'model': 1}
 exit=0</pre></div>
   <p>数字跟开头那行对上了，说明程序正确。</p>
@@ -286,14 +286,14 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">1.1</span>哈希表：用空间换时间 <span class="badge a">A</span></h2>
   <p>给一串数字和一个目标值，找出两个数加起来等于目标。最笨的办法是每个数都和后面所有数试一遍，n 个数要试 n² 次。哈希表的做法是：一边走，一边记下“还差多少”。</p>
-  <div class="code"><span class="label">hash_tables.py</span><pre>def two_sum(numbers, target):
+  <div class="code"><span class="label">hash_tables.py</span><pre>def two_sum(numbers, target):                   # 输入一串数字、目标和
     seen = {}                                   # 值 → 下标
-    for index, number in enumerate(numbers):
+    for index, number in enumerate(numbers):     # 同时拿到下标和值
         need = target - number                  # 还差多少
         if need in seen:                        # 之前见过这个“差”
-            return seen[need], index
+            return seen[need], index            # 找到配对，交回两个下标
         seen[number] = index                    # 记下当前值和下标
-    return None</pre></div>
+    return None                                 # 走完没配对，返回 None</pre></div>
 
   <p>拿 <code>[2, 7, 11, 15]</code>、目标 <code>9</code> 走一遍：</p>
   <table>
@@ -308,16 +308,16 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">1.2</span>二分：每一步砍掉一半 <span class="badge a">A</span></h2>
   <p>在一本排好序的字典里找词，你不会从第一页翻。二分的动作是：看中间，比目标大就去左半边，小就去右半边。</p>
-  <div class="code"><span class="label">binary_search.py</span><pre>def binary_search(numbers, target):
-    low, high = 0, len(numbers) - 1
-    while low &lt;= high:
+  <div class="code"><span class="label">binary_search.py</span><pre>def binary_search(numbers, target):             # 输入排好序的数字、要找的值
+    low, high = 0, len(numbers) - 1             # 搜索范围：最左、最右下标
+    while low &lt;= high:                          # 范围里还有数
         middle = (low + high) // 2              # 取中间下标
-        if numbers[middle] == target:
-            return middle
+        if numbers[middle] == target:           # 正好是目标
+            return middle                       # 交回下标
         if numbers[middle] &lt; target:            # 目标在右半边
-            low = middle + 1
+            low = middle + 1                    # 左边界右移
         else:                                   # 目标在左半边
-            high = middle - 1
+            high = middle - 1                   # 右边界左移
     return None                                 # 没找到</pre></div>
 
   <p><code>[1, 3, 5, 7]</code> 找 <code>5</code>：</p>
@@ -376,31 +376,31 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">2.1</span>四个工人和一个计数器 <span class="badge a">A</span></h2>
   <p>目标是 400。先看正确的写法，再解释为什么需要锁。</p>
-  <div class="code"><span class="label">thread_queue.py</span><pre>import threading
+  <div class="code"><span class="label">thread_queue.py</span><pre>import threading                              # 线程工具箱
 
-def count_safely(repeats, workers):
+def count_safely(repeats, workers):            # 每线程加几次、开几个线程
     state = {"count": 0}                        # 公共账本，所有线程共用
-    lock = threading.Lock()
+    lock = threading.Lock()                     # 一支笔：谁拿到谁才能改账本
 
-    def worker():
-        for _ in range(repeats):
+    def worker():                               # 每个线程要做的事
+        for _ in range(repeats):                # 重复指定次数
             with lock:                          # 进入时拿锁，离开时自动还
-                state["count"] += 1
+                state["count"] += 1             # 账本加一
 
-    threads = []
-    for _ in range(workers):
-        thread = threading.Thread(target=worker)
-        threads.append(thread)
-    for thread in threads:
+    threads = []                                # 存线程的列表
+    for _ in range(workers):                    # 按数量创建
+        thread = threading.Thread(target=worker)  # 创建一个执行 worker 的线程
+        threads.append(thread)                  # 放进列表
+    for thread in threads:                      # 逐个发令
         thread.start()                          # 四个一起开工
-    for thread in threads:
+    for thread in threads:                      # 逐个等收工
         thread.join()                           # 等四个都收工
-    return state["count"]</pre></div>
+    return state["count"]                       # 交回最终计数</pre></div>
 
-  <div class="code"><span class="label">test_thread_queue.py</span><pre>from thread_queue import count_safely
+  <div class="code"><span class="label">test_thread_queue.py</span><pre>from thread_queue import count_safely         # 导入要测的函数
 
-assert count_safely(100, 4) == 400
-print("通过 1：四个线程合计加了 400 次")</pre></div>
+assert count_safely(100, 4) == 400              # 4 个线程各加 100 次
+print("通过 1：四个线程合计加了 400 次")         # 断言没失败才打印</pre></div>
 
   <div class="out"><span class="label">实际输出</span><pre>通过 1：四个线程合计加了 400 次
 exit=0</pre></div>
@@ -414,21 +414,21 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">2.2</span>不加锁会怎样：1 而不是 2 <span class="badge b">B</span></h2>
   <p>普通 <code>+= 1</code> 太快，两个线程不一定撞上。用 <code>Barrier</code> 强制“两人都先读完，再一起写”，这个 bug 就每次必现。</p>
-  <div class="code"><span class="label">thread_queue.py</span><pre>def demonstrate_lost_update():
-    state = {"count": 0}
+  <div class="code"><span class="label">thread_queue.py</span><pre>def demonstrate_lost_update():                  # 演示：两人同时加一，结果只加了一次
+    state = {"count": 0}                        # 公共账本，初始 0
     both_read = threading.Barrier(2)            # 两人到齐才放行
 
-    def worker():
+    def worker():                               # 每个线程要做的事
         old_value = state["count"]              # 两人都读到 0
-        both_read.wait()
+        both_read.wait()                        # 等另一个也读完
         state["count"] = old_value + 1          # 两人都写 1
 
-    first = threading.Thread(target=worker)
-    second = threading.Thread(target=worker)
-    first.start()
-    second.start()
-    first.join()
-    second.join()
+    first = threading.Thread(target=worker)     # 第一个工人
+    second = threading.Thread(target=worker)    # 第二个工人
+    first.start()                               # 两个都发令
+    second.start()                              # 两个都开跑
+    first.join()                                # 等第一个收工
+    second.join()                               # 等第二个收工
     return state["count"]                       # 结果是 1</pre></div>
 
   <table>
@@ -444,29 +444,29 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">2.3</span>用队列交任务 <span class="badge a">A</span></h2>
   <p>与其让多个线程抢同一堆变量，不如让他们从队列里取任务。队列自己管顺序。</p>
-  <div class="code"><span class="label">thread_queue.py</span><pre>import queue
+  <div class="code"><span class="label">thread_queue.py</span><pre>import queue                                   # 线程安全队列
 
-def process_tasks(tasks):
-    jobs = queue.Queue()
-    results = []
-    for task in tasks:
-        jobs.put(task)
+def process_tasks(tasks):                      # 接收一批任务
+    jobs = queue.Queue()                        # 任务队列
+    results = []                                # 处理结果
+    for task in tasks:                          # 逐个准备任务
+        jobs.put(task)                          # 放到队尾
     jobs.put(None)                              # 收工信号
 
-    def worker():
-        while True:
-            task = jobs.get()
-            if task is None:
-                jobs.task_done()
-                break
+    def worker():                               # 工人
+        while True:                             # 一直取，直到收到停止信号
+            task = jobs.get()                   # 从队头取一个
+            if task is None:                    # 收到 None
+                jobs.task_done()                # 告诉队列这个处理完了
+                break                           # 退出循环
             results.append(task.upper())        # 注意缩进：在 if 之后
-            jobs.task_done()
+            jobs.task_done()                    # 标记当前任务完成
 
-    thread = threading.Thread(target=worker)
-    thread.start()
-    jobs.join()
-    thread.join()
-    return results</pre></div>
+    thread = threading.Thread(target=worker)    # 建工人线程
+    thread.start()                              # 开工
+    jobs.join()                                 # 等队列清空
+    thread.join()                               # 等工人退出
+    return results                              # 交回结果</pre></div>
 
   <table>
     <tr><th>执行到的代码</th><th>队列里剩</th><th>results</th></tr>
@@ -483,32 +483,32 @@ def process_tasks(tasks):
 
   <h2><span class="sec-no">2.4</span>停止、超时、异常 <span class="badge b">B</span></h2>
   <p>工人不能永远等，坏任务也不能让队列静默死掉。</p>
-  <div class="code"><span class="label">thread_queue.py</span><pre>def process_tasks_with_status(tasks):
-    jobs = queue.Queue()
-    results = []
-    for task in tasks:
-        jobs.put(task)
-    jobs.put(None)
+  <div class="code"><span class="label">thread_queue.py</span><pre>def process_tasks_with_status(tasks):          # 带状态的任务处理
+    jobs = queue.Queue()                        # 任务队列
+    results = []                                # 结果列表
+    for task in tasks:                          # 逐个入队
+        jobs.put(task)                          # 入队
+    jobs.put(None)                              # 收工信号
 
-    def worker():
-        while True:
-            task = jobs.get()
-            if task is None:
-                jobs.task_done()
-                break
+    def worker():                               # 工人要做的事
+        while True:                             # 一直取到收工信号
+            task = jobs.get()                   # 取任务
+            if task is None:                    # 收工
+                jobs.task_done()                # 告诉队列这条处理完了
+                break                           # 退出循环
             try:                                # try 放在工人内部
-                if task == "boom":
-                    raise ValueError("bad task")
-                results.append({"task": task, "status": "ok", "result": task.upper()})
-            except Exception as error:
-                results.append({"task": task, "status": "error", "reason": str(error)})
-            jobs.task_done()
+                if task == "boom":              # 故意制造坏任务
+                    raise ValueError("bad task")  # 抛出异常，模拟坏任务
+                results.append({"task": task, "status": "ok", "result": task.upper()})  # 成功记录
+            except Exception as error:          # 坏任务抛出的异常
+                results.append({"task": task, "status": "error", "reason": str(error)})  # 失败也记录
+            jobs.task_done()                    # 标记完成
 
-    thread = threading.Thread(target=worker)
-    thread.start()
-    jobs.join()
-    thread.join()
-    return results</pre></div>
+    thread = threading.Thread(target=worker)    # 建工人线程
+    thread.start()                              # 开工
+    jobs.join()                                 # 等全部处理完
+    thread.join()                               # 等工人退出
+    return results                              # 交回带状态的结果</pre></div>
 
   <p><code>["a", "boom"]</code> 的预期结果有两条：第一条 <code>ok / A</code>，第二条 <code>error / bad task</code>。跑出来对照，不要只看有没有报错。</p>
 
@@ -545,9 +545,9 @@ def process_tasks(tasks):
 
   <h2><span class="sec-no">3.1</span>三个数字，一步一步算 <span class="badge b">B</span></h2>
   <p><code>sandbox/sample.txt</code> 的内容是 <code>alpha</code>、一个空行、<code>beta</code>。肉眼能数出 3 行、2 行有内容，但“占多少字节”数不出来。</p>
-  <div class="code"><span class="label">在 03-memory-filesystem 目录里打开 REPL</span><pre>from pathlib import Path
+  <div class="code"><span class="label">在 03-memory-filesystem 目录里打开 REPL</span><pre>from pathlib import Path                        # 路径工具
 
-p = Path("sandbox/sample.txt")
+p = Path("sandbox/sample.txt")                  # 指向样例文件
 print(len(p.read_bytes()))                      # 12
 print(repr(p.read_text(encoding="utf-8")))      # 'alpha\n\nbeta\n'
 print(len(p.read_text(encoding="utf-8").splitlines()))   # 3</pre></div>
@@ -557,28 +557,28 @@ print(len(p.read_text(encoding="utf-8").splitlines()))   # 3</pre></div>
   <p>12 字节 = <code>alpha</code>(5) + 换行(1) + 空行(1) + <code>beta</code>(4) + 末尾换行(1)。最后那个换行你看不见，但它占 1 字节。</p>
 
   <p>装成函数就是你要的工具：</p>
-  <div class="code"><span class="label">file_report.py</span><pre>from pathlib import Path
+  <div class="code"><span class="label">file_report.py</span><pre>from pathlib import Path                       # 路径工具
 
-def report(path):
-    file_path = Path(path)
-    text = file_path.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    return {"bytes": file_path.stat().st_size,
-            "lines": len(lines),
-            "nonempty": sum(1 for line in lines if line.strip())}</pre></div>
+def report(path):                               # 给路径，交回报告
+    file_path = Path(path)                      # 包装成 Path 对象
+    text = file_path.read_text(encoding="utf-8")  # 按 UTF-8 读文字
+    lines = text.splitlines()                   # 按换行切成行列表
+    return {"bytes": file_path.stat().st_size,  # 文件占多少字节
+            "lines": len(lines),                # 一共几行
+            "nonempty": sum(1 for line in lines if line.strip())}  # 有内容的行数</pre></div>
   <div class="out"><span class="label">调用结果</span><pre>{'bytes': 12, 'lines': 3, 'nonempty': 2}</pre></div>
 
   <h2><span class="sec-no">3.2</span>逐行读：大文件不塞进内存 <span class="badge b">B</span></h2>
   <p><code>read_text()</code> 把整份文件变成一个字符串。文件几 GB 时这会吃掉大量内存。逐行读每次只拿一行。</p>
-  <div class="code"><span class="label">file_report.py</span><pre>def count_file_lines(path):
-    total = 0
-    nonempty = 0
-    with Path(path).open(encoding="utf-8") as file:
-        for line in file:
-            total += 1
-            if line.strip():
-                nonempty += 1
-    return total, nonempty</pre></div>
+  <div class="code"><span class="label">file_report.py</span><pre>def count_file_lines(path):                     # 逐行统计
+    total = 0                                   # 总行数
+    nonempty = 0                                # 非空行数
+    with Path(path).open(encoding="utf-8") as file:  # 打开文件，离开 with 自动关
+        for line in file:                       # 每次只读一行
+            total += 1                           # 总行数加一
+            if line.strip():                     # 去掉空白后还有内容
+                nonempty += 1                    # 非空行加一
+    return total, nonempty                       # 一起交回两个数</pre></div>
   <table>
     <tr><th>读到的行</th><th>total</th><th>nonempty</th></tr>
     <tr><td>alpha</td><td class="num">1</td><td class="num">1</td></tr>
@@ -589,15 +589,15 @@ def report(path):
 
   <h2><span class="sec-no">3.3</span>三种错误，三个状态 <span class="badge a">A</span></h2>
   <p>缺失文件、空文件、编码不对，是三件事。把它们混成一个“读取失败”，后面排查就没法定位。</p>
-  <div class="code"><span class="label">file_report.py</span><pre>def safe_report(path):
-    file_path = Path(path)
-    if not file_path.exists():
-        return {"status": "missing", "path": str(file_path)}
-    try:
-        total, nonempty = count_file_lines(file_path)
-    except UnicodeDecodeError:
-        return {"status": "decode_error", "path": str(file_path)}
-    return {"status": "ok", "lines": total, "nonempty": nonempty}</pre></div>
+  <div class="code"><span class="label">file_report.py</span><pre>def safe_report(path):                          # 三种情况分开报
+    file_path = Path(path)                      # 路径对象
+    if not file_path.exists():                  # 文件不存在
+        return {"status": "missing", "path": str(file_path)}  # 报缺失
+    try:                                        # 试着读，编码不对就跳出去
+        total, nonempty = count_file_lines(file_path)  # 试着逐行读
+    except UnicodeDecodeError:                  # 编码不对，读不出来
+        return {"status": "decode_error", "path": str(file_path)}  # 如实报编码错误
+    return {"status": "ok", "lines": total, "nonempty": nonempty}  # 正常结果</pre></div>
   <table>
     <tr><th>输入</th><th>返回</th><th>说明</th></tr>
     <tr><td>不存在的路径</td><td><code>{"status":"missing"}</code></td><td>先查存在，不打开</td></tr>
@@ -634,36 +634,36 @@ def report(path):
   <p>把网络想成打电话：服务端守在一个号码旁边等人拨进来，客户端拨号，接通后双方发字节，最后挂断。这一章只做本机通话，不碰外网。</p>
 
   <h2><span class="sec-no">4.1</span>收什么就回什么 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">echo_server.py</span><pre>import socket
+  <div class="code"><span class="label">echo_server.py</span><pre>import socket                                  # TCP 工具箱
 
-def echo_once(connection):
-    while True:
+def echo_once(connection):                     # 处理一个连接
+    while True:                                # 持续收发
         data = connection.recv(1024)            # 最多收 1024 字节
         if not data:                            # 空 bytes：对方关了发送
-            break
+            break                               # 结束循环
         connection.sendall(data)                # 原样发回去
 
-def serve_once(host="127.0.0.1", port=18080):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind((host, port))
-        server.listen(1)
-        print("listening", host, port)
+def serve_once(host="127.0.0.1", port=18080):  # 只接待一个客户端
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:  # IPv4 TCP socket
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)   # 重跑可复用端口
+        server.bind((host, port))               # 绑定地址和端口
+        server.listen(1)                        # 开始监听
+        print("listening", host, port)          # 提示已就绪
         connection, address = server.accept()   # 等到有人打进来
-        print("connected", address)
-        with connection:
-            echo_once(connection)
+        print("connected", address)             # 显示对方地址
+        with connection:                        # 用完关闭
+            echo_once(connection)               # 收到什么回什么
 
-if __name__ == "__main__":
-    serve_once()</pre></div>
+if __name__ == "__main__":                      # 直接运行才启动
+    serve_once()                                # 开始接待</pre></div>
 
-  <div class="code"><span class="label">echo_client.py</span><pre>import socket
+  <div class="code"><span class="label">echo_client.py</span><pre>import socket                                  # TCP 工具箱
 
-with socket.create_connection(("127.0.0.1", 18080), timeout=3) as client:
-    client.sendall("你好，TCP".encode("utf-8"))   # 12 字节
+with socket.create_connection(("127.0.0.1", 18080), timeout=3) as client:  # 连本机，最多等 3 秒
+    client.sendall("你好，TCP".encode("utf-8"))   # 文字编码成 bytes，12 字节
     client.shutdown(socket.SHUT_WR)               # 我这边不再发送
-    reply = client.recv(1024)
-    print(reply.decode("utf-8"))</pre></div>
+    reply = client.recv(1024)                     # 收回声
+    print(reply.decode("utf-8"))                  # 解码成文字</pre></div>
 
   <p>开两个 PowerShell 窗口，都是先 <code>$env:PYTHONUTF8='1'</code> 再 <code>cd</code> 到 <code>04-tcp-http</code>。A 窗口跑服务端，看到下面这行之后，B 窗口跑客户端。</p>
   <div class="out"><span class="label">服务端先输出</span><pre>listening 127.0.0.1 18080</pre></div>
@@ -693,26 +693,26 @@ exit=0</pre></div>
 
   <h2><span class="sec-no">4.3</span>HTTP 只是套了格式的 TCP <span class="badge b">B</span></h2>
   <p>TCP 只管把字节送到，不管这些字节是什么意思。HTTP 规定这些字节怎么排：请求行、头部、空行、正文；响应里还要有状态码。</p>
-  <div class="code"><span class="label">本机 HTTP 演示</span><pre>from http.server import BaseHTTPRequestHandler, HTTPServer
-import threading, urllib.request
+  <div class="code"><span class="label">本机 HTTP 演示</span><pre>from http.server import BaseHTTPRequestHandler, HTTPServer  # 请求基类、服务器
+import threading, urllib.request                 # 线程、HTTP 客户端
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
-        self.end_headers()
-        self.wfile.write("pong".encode("utf-8"))
-    def log_message(self, *args):
-        pass
+class Handler(BaseHTTPRequestHandler):            # 处理请求
+    def do_GET(self):                             # 只接 GET
+        self.send_response(200)                   # 状态码 200
+        self.send_header("Content-Type", "text/plain; charset=utf-8")  # 响应类型
+        self.end_headers()                        # 头结束
+        self.wfile.write("pong".encode("utf-8"))  # 写响应体
+    def log_message(self, *args):                 # 覆盖访问日志
+        pass                                       # 不打印访问日志
 
-server = HTTPServer(("127.0.0.1", 18082), Handler)
-threading.Thread(target=server.serve_forever, daemon=True).start()
+server = HTTPServer(("127.0.0.1", 18082), Handler)  # 绑定本机端口
+threading.Thread(target=server.serve_forever, daemon=True).start()  # 后台运行
 
-with urllib.request.urlopen("http://127.0.0.1:18082/", timeout=3) as response:
-    print("状态码：", response.status)
-    print("响应体：", response.read().decode("utf-8"))
+with urllib.request.urlopen("http://127.0.0.1:18082/", timeout=3) as response:  # 发 GET
+    print("状态码：", response.status)             # 打印状态码
+    print("响应体：", response.read().decode("utf-8"))  # 打印正文
 
-server.shutdown()</pre></div>
+server.shutdown()                                 # 关掉服务</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>状态码： 200
 响应体： pong</pre></div>
   <p><code>urllib</code> 替你做了三件事：建 TCP 连接、按 HTTP 格式写请求、按 HTTP 格式解析响应。它没有换掉 TCP，只是在 TCP 上按约定说话。</p>
@@ -744,26 +744,26 @@ server.shutdown()</pre></div>
   <p>程序退出后变量就消失。数据库把数据写进文件，下次启动还能读。这一章用 Python 自带的 <code>sqlite3</code>，不装库、不启服务。</p>
 
   <h2><span class="sec-no">5.1</span>建表、加一条、读回来 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">todo_db.py</span><pre>import sqlite3
+  <div class="code"><span class="label">todo_db.py</span><pre>import sqlite3                                  # 自带数据库
 
-def create_table(connection):
-    connection.execute("CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, text TEXT, done INTEGER)")
+def create_table(connection):                   # 建表
+    connection.execute("CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, text TEXT, done INTEGER)")  # 三列：编号、内容、是否完成
 
-def add_task(connection, text):
-    cursor = connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", (text, 0))
-    connection.commit()
-    return cursor.lastrowid
+def add_task(connection, text):                 # 添加一条
+    cursor = connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", (text, 0))  # 问号占位
+    connection.commit()                         # 提交，否则不保存
+    return cursor.lastrowid                     # 返回数据库分配的编号
 
-def list_tasks(connection):
-    cursor = connection.execute("SELECT id, text, done FROM tasks ORDER BY id")
-    return cursor.fetchall()</pre></div>
-  <div class="code"><span class="label">test_todo_db.py</span><pre>import sqlite3
-from todo_db import create_table, add_task, list_tasks
+def list_tasks(connection):                     # 查询全部
+    cursor = connection.execute("SELECT id, text, done FROM tasks ORDER BY id")  # 按编号排序
+    return cursor.fetchall()                    # 取出所有行</pre></div>
+  <div class="code"><span class="label">test_todo_db.py</span><pre>import sqlite3                                  # 数据库
+from todo_db import create_table, add_task, list_tasks  # 导入三个函数
 
 connection = sqlite3.connect(":memory:")         # 只在内存里，退出就没了
-create_table(connection)
-number = add_task(connection, "learn SQL")
-print(number, list_tasks(connection))</pre></div>
+create_table(connection)                         # 建表
+number = add_task(connection, "learn SQL")       # 插一条
+print(number, list_tasks(connection))            # 打印编号和整张表</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>1 [(1, 'learn SQL', 0)]</pre></div>
   <p>插入前表是空的 <code>[]</code>，插入后是一行 <code>(1, 'learn SQL', 0)</code>。<code>id</code> 由数据库分配，<code>done</code> 用 0/1 表示未完成/完成。</p>
 
@@ -812,22 +812,22 @@ flowchart TD
   <p>除了能存进去，参数化还挡住 SQL 注入：用户输入永远只是数据，不会被当成指令。</p>
 
   <h2><span class="sec-no">5.3</span>事务：两条要么都在，要么都不在 <span class="badge a">A</span></h2>
-  <div class="code"><span class="label">test_todo_db.py</span><pre>try:
+  <div class="code"><span class="label">test_todo_db.py</span><pre>try:                                             # 把下面两条 INSERT 当成一组
     with connection:                             # 成功自动提交，异常自动回滚
-        connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", ("A", 0))
-        connection.execute("INSERT INTO tasks(no_such_column) VALUES (?)", ("B",))
-except sqlite3.OperationalError:
-    pass
+        connection.execute("INSERT INTO tasks(text, done) VALUES (?, ?)", ("A", 0))   # 第一条：写入 A
+        connection.execute("INSERT INTO tasks(no_such_column) VALUES (?)", ("B",))    # 第二条：列名不存在，必定报错
+except sqlite3.OperationalError:                 # 接住数据库的操作错误
+    pass                                         # 故意不处理，只为观察回滚结果
 
-print([row for row in list_tasks(connection) if row[1] == "A"])</pre></div>
+print([row for row in list_tasks(connection) if row[1] == "A"])   # 查表里还有没有 A</pre></div>
   <div class="out"><span class="label">实际输出</span><pre>[]</pre></div>
   <p>第二条写错列，抛异常，连第一条 <code>A</code> 也一起撤回。表里没有“只写了一半”的状态。</p>
   <div class="warn"><strong>别用 <code>add_task()</code> 做事务实验。</strong>它每次都自带 <code>commit()</code>，等于每一步都落盘，回滚不了。</div>
 
   <h2><span class="sec-no">5.4</span>索引：改的是找法，不是结果 <span class="badge b">B</span></h2>
-  <div class="code"><span class="label">todo_db.py</span><pre>def create_text_index(connection):
-    connection.execute("CREATE INDEX IF NOT EXISTS idx_tasks_text ON tasks(text)")
-    connection.commit()</pre></div>
+  <div class="code"><span class="label">todo_db.py</span><pre>def create_text_index(connection):                # 传入数据库连接
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_tasks_text ON tasks(text)")  # 按 text 建索引，已存在就跳过
+    connection.commit()                           # 提交，索引才真正生效</pre></div>
   <p>建索引前后，<code>list_tasks()</code> 的返回值必须完全一致。样例只有几行，测不出可靠的速度差，所以验收方式是“结果不变”，不是“快了多少”。索引占额外空间，插入和更新时还要维护。</p>
 
   <h2><span class="sec-no">5.5</span>改和删：看 <code>rowcount</code> <span class="badge c">C</span></h2>
@@ -870,22 +870,22 @@ print([row for row in list_tasks(connection) if row[1] == "A"])</pre></div>
 1.5 r2 INFO start
 2.0 r2 INFO finish</pre></div>
   <p>解析要做的事：切四段、时间转数字、装进字典。切不出四段或时间不是数字的行，计入 <code>bad_lines</code>，不能静默丢掉。</p>
-  <div class="code"><span class="label">diagnose_request.py</span><pre>from pathlib import Path
+  <div class="code"><span class="label">diagnose_request.py</span><pre>from pathlib import Path                          # 处理文件路径
 
-def load_events(path):
-    events = []
-    bad_lines = 0
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        parts = line.split(maxsplit=3)
-        if len(parts) != 4:
-            bad_lines += 1
-            continue
-        try:
-            events.append({"time": float(parts[0]), "request_id": parts[1],
-                           "level": parts[2], "event": parts[3]})
-        except ValueError:
-            bad_lines += 1
-    return events, bad_lines</pre></div>
+def load_events(path):                            # 输入日志文件路径
+    events = []                                   # 装解析好的事件
+    bad_lines = 0                                 # 数坏行，不能悄悄丢掉
+    for line in Path(path).read_text(encoding="utf-8").splitlines():   # 一次读全文，按行切开
+        parts = line.split(maxsplit=3)            # 按空白切四段：时间、编号、级别、事件
+        if len(parts) != 4:                       # 不够四段 = 这行不合法
+            bad_lines += 1                        # 记一笔坏行
+            continue                              # 跳过，继续下一行
+        try:                                      # 试着把时间转成数字
+            events.append({"time": float(parts[0]), "request_id": parts[1],   # 时间转小数，编号原样
+                           "level": parts[2], "event": parts[3]})              # 级别、事件名原样
+        except ValueError:                        # 时间不是数字
+            bad_lines += 1                        # 也算坏行
+    return events, bad_lines                      # 交回事件列表和坏行数</pre></div>
 
   <h2><span class="sec-no">6.2</span>失败要分类，还要说能不能重试 <span class="badge a">A</span></h2>
   <p>同样叫“失败”，处理方式不一样：超时可以再试，404 再试还是 404。</p>
@@ -897,39 +897,39 @@ def load_events(path):
     <tr><td><code>http_500</code></td><td>服务端内部错误</td><td><code>True</code></td></tr>
     <tr><td>没见过的事件名</td><td>没有依据</td><td><code>None</code></td></tr>
   </table>
-  <div class="code"><span class="label">diagnose_request.py</span><pre>RETRYABLE = {"timeout", "connection_refused"}
-NOT_RETRYABLE = {"http_404", "json_parse"}
+  <div class="code"><span class="label">diagnose_request.py</span><pre>RETRYABLE = {"timeout", "connection_refused"}     # 重试有用的错误名
+NOT_RETRYABLE = {"http_404", "json_parse"}        # 重试也没用的错误名
 
-def classify(error_event):
-    name = error_event["event"]
-    if name.startswith("http_"):
-        code = int(name.split("_")[1])
-        retryable = code &gt;= 500 or code == 408
-    elif name in RETRYABLE:
-        retryable = True
-    elif name in NOT_RETRYABLE or name.startswith("json"):
-        retryable = False
-    else:
-        retryable = None
-    return {"reason": name, "retryable": retryable}</pre></div>
+def classify(error_event):                        # 输入一条 ERROR 事件
+    name = error_event["event"]                   # 事件名就是错误原因
+    if name.startswith("http_"):                  # 形如 http_404 / http_500
+        code = int(name.split("_")[1])            # 从名字里取出状态码
+        retryable = code &gt;= 500 or code == 408   # 5xx 或 408 值得重试
+    elif name in RETRYABLE:                       # 白名单：超时、拒连
+        retryable = True                          # 可以重试
+    elif name in NOT_RETRYABLE or name.startswith("json"):   # 404、解析失败这类
+        retryable = False                         # 重试无意义
+    else:                                         # 没见过的事件名
+        retryable = None                          # 不下结论，留空
+    return {"reason": name, "retryable": retryable}   # 原因 + 能不能重试</pre></div>
   <p>三态必须分清，比较时用 <code>is True</code> / <code>is False</code>，不能用 <code>==</code> 糊过去。</p>
 
   <h2><span class="sec-no">6.3</span>诊断与汇总 <span class="badge b">B</span></h2>
   <p>对每个 <code>request_id</code>：先筛出它的事件，按时间排序；有 <code>ERROR</code> 就是失败，否则必须同时有 <code>start</code> 和 <code>finish</code> 才能算耗时，缺一个就返回 <code>unknown</code>。</p>
-  <div class="code"><span class="label">diagnose_request.py</span><pre>def diagnose(events, request_id):
-    selected = [e for e in events if e["request_id"] == request_id]
-    if not selected:
-        return {"status": "unknown", "reason": "request not found"}
-    selected.sort(key=lambda e: e["time"])
-    errors = [e for e in selected if e["level"] == "ERROR"]
-    if errors:
-        info = classify(errors[0])
-        return {"status": "failed", "reason": info["reason"], "retryable": info["retryable"]}
-    starts = [e for e in selected if e["event"] == "start"]
-    finishes = [e for e in selected if e["event"] == "finish"]
-    if not starts or not finishes:
-        return {"status": "unknown", "reason": "incomplete trace"}
-    return {"status": "ok", "duration": round(finishes[-1]["time"] - starts[0]["time"], 3)}</pre></div>
+  <div class="code"><span class="label">diagnose_request.py</span><pre>def diagnose(events, request_id):                 # 输入全部事件、要查的编号
+    selected = [e for e in events if e["request_id"] == request_id]   # 只留这个请求的事件
+    if not selected:                              # 一条都没找到
+        return {"status": "unknown", "reason": "request not found"}   # 没到达，或没有记录
+    selected.sort(key=lambda e: e["time"])        # 按时间从早到晚排
+    errors = [e for e in selected if e["level"] == "ERROR"]   # 挑出所有 ERROR
+    if errors:                                    # 有错误就判失败
+        info = classify(errors[0])                # 拿第一条错误做分类
+        return {"status": "failed", "reason": info["reason"], "retryable": info["retryable"]}   # 失败 + 原因 + 能否重试
+    starts = [e for e in selected if e["event"] == "start"]   # 找开始事件
+    finishes = [e for e in selected if e["event"] == "finish"]   # 找结束事件
+    if not starts or not finishes:                # 缺头或缺尾
+        return {"status": "unknown", "reason": "incomplete trace"}   # 证据不全，不算成功
+    return {"status": "ok", "duration": round(finishes[-1]["time"] - starts[0]["time"], 3)}   # 成功：最后一次结束减第一次开始</pre></div>
   <div class="out"><span class="label">样例诊断结果</span><pre>r1: 失败于 timeout，可重试
 r2: 成功，耗时 0.5 秒</pre></div>
   <p><code>0.5</code> 来自 <code>2.0 - 1.5</code>，不是估的。所有请求汇总时，先把编号去重（<code>{event["request_id"] for event in events}</code>），再排序，输出顺序才稳定。</p>
@@ -983,9 +983,9 @@ r2: 成功，耗时 0.5 秒</pre></div>
   </table>
 
   <h2><span class="sec-no">A.3</span>运行环境</h2>
-  <div class="code"><span class="label">每个模块开始前</span><pre>cd "$HOME\Desktop\stage1-data-structures\&lt;模块目录&gt;"
-$env:PYTHONUTF8='1'
-python test_&lt;模块&gt;.py; "exit=$LASTEXITCODE"</pre></div>
+  <div class="code"><span class="label">每个模块开始前</span><pre>cd "$HOME\Desktop\stage1-data-structures\&lt;模块目录&gt;"   # 切到这一节的模块目录
+$env:PYTHONUTF8='1'                                   # 让控制台按 UTF-8 输出中文
+python test_&lt;模块&gt;.py; "exit=$LASTEXITCODE"          # 跑这一节的测试，再打印退出码</pre></div>
   <p>看到最后一个“通过”和 <code>exit=0</code> 才算过。任何 <code>Traceback</code> 都要先修，不要跳过去做下一节。</p>
 
   <h2><span class="sec-no">A.4</span>下一步</h2>
