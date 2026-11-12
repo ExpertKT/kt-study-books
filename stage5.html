@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阶段五 · 复刻 swarm（手册）</title>
+<style>
+  :root{
+    --paper:#ffffff;--bg:#f4f3f0;--ink:#1d1d1b;--ink-soft:#4a4a46;--ink-faint:#7b7b75;
+    --rule:#dcd9d2;--accent:#2f5d46;--accent-soft:#eaf1ec;
+    --code-bg:#f6f4ef;--out-bg:#eef2ee;--warn-bg:#fbf7ea;--warn-rule:#d8c49a;
+    --analogy-bg:#f2f1ec;--analogy-rule:#9a9483;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:400 16.5px/1.9 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .page{max-width:880px;margin:0 auto;background:var(--paper);padding:40px 28px 80px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+  @media (max-width:700px){
+    .page{padding:24px 18px 56px;box-shadow:none}
+    body{font-size:16px;line-height:1.85}
+    .cover-title{font-size:26px;line-height:1.35}
+    table{table-layout:fixed}
+    th,td{word-break:break-word;overflow-wrap:anywhere;padding:8px 6px;font-size:13.5px}
+    h1.ch-title{font-size:23px}
+  }
+  h1,h2,h3,.cover-title,.chapter-no{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:600}
+  a{color:var(--accent);text-decoration:none}
+  .cover{padding-bottom:28px;border-bottom:2px solid var(--rule);margin-bottom:28px}
+  .cover-kicker{font-size:12.5px;letter-spacing:.16em;color:var(--ink-faint);margin:0 0 10px}
+  .cover-title{font-size:33px;line-height:1.3;margin:0 0 10px}
+  .cover-sub{font-size:17px;color:var(--ink-soft);margin:0 0 18px}
+  .cover-meta{font-size:13.5px;color:var(--ink-faint);line-height:1.9}
+  .toc{margin:0 0 40px;padding:18px 18px 6px;background:var(--accent-soft)}
+  .toc h2{font-size:14px;letter-spacing:.12em;color:var(--accent);margin:0 0 12px;font-family:inherit;font-weight:600}
+  .toc ol{margin:0;padding-left:20px}
+  .toc li{margin:0 0 6px;font-size:14.5px;line-height:1.7}
+  .chapter{padding-top:8px;margin-bottom:56px}
+  .chapter-head{border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:24px}
+  .chapter-no{font-size:13px;letter-spacing:.18em;color:var(--accent);margin:0 0 6px}
+  h1.ch-title{font-size:27px;line-height:1.4;margin:0 0 10px}
+  .chapter-goal{font-size:15px;color:var(--ink-soft);margin:0}
+  h2{font-size:20px;line-height:1.5;margin:40px 0 12px}
+  h2 .sec-no{color:var(--accent);margin-right:8px}
+  h3{font-size:16.5px;margin:24px 0 6px}
+  p{margin:0 0 14px}
+  .code,.out{margin:0 0 16px}
+  .code .label,.out .label{display:block;font:600 11.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:6px}
+  pre{margin:0;padding:14px 16px;background:var(--code-bg);border-left:3px solid var(--accent);overflow-x:auto;font:13px/1.75 Consolas,"SF Mono",Menlo,monospace;color:#23231f;tab-size:4}
+  .out pre{background:var(--out-bg);border-left-color:#9fb5a6;color:#243a2b}
+  .analogy{padding:14px 16px;border-left:3px solid var(--analogy-rule);background:var(--analogy-bg);margin:0 0 18px;font-size:15.5px}
+  .analogy strong{color:#4b4536}
+  .note{padding:12px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);margin:0 0 16px;font-size:15px}
+  .warn{padding:12px 16px;border:1px solid var(--warn-rule);background:var(--warn-bg);margin:0 0 16px;font-size:15px}
+  .warn strong{color:#6b4e12}
+  .quiz{margin:0 0 16px;padding:14px 16px;border:1px dashed var(--rule);background:#faf9f6;font-size:15px}
+  .quiz p{margin:0 0 6px}
+  table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px;line-height:1.7}
+  th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f2f0ea;font-weight:600;font-size:13px;color:var(--ink-soft)}
+  ul.plain{padding-left:20px;margin:0 0 16px}
+  ul.plain li{margin-bottom:6px}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-faint)}
+  @media print{body{background:#fff;font-size:12pt}.page{padding:0}.chapter{page-break-after:always}pre{white-space:pre-wrap}}
+</style>
+<style>
+html[data-theme="dark"]{
+  --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#a8a49a;
+  --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
+  --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
+  --analogy-bg:#232320;--analogy-rule:#6b6555;
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme="light"]){
+    --paper:#1b1b19;--bg:#111110;--ink:#e8e6e0;--ink-soft:#bab7ae;--ink-faint:#a8a49a;
+    --rule:#3a3a35;--accent:#7fbfa0;--accent-soft:#1f2c25;
+    --code-bg:#232321;--out-bg:#1c2722;--warn-bg:#2a2618;--warn-rule:#5c4f2a;
+    --analogy-bg:#232320;--analogy-rule:#6b6555;
+  }
+}
+html[data-theme="dark"] th{background:#26261f;color:#c9c6bb}
+html[data-theme="dark"] .quiz{background:#201f1a}
+html[data-theme="dark"] pre{color:#e6e4dc}
+html[data-theme="dark"] .out pre{color:#cfe0d3}
+html[data-theme="dark"] .analogy strong{color:#d9cfae}
+html[data-theme="dark"] .warn strong{color:#e0c987}
+html[data-theme="dark"] .toc{background:#1f2c25}
+html[data-theme="dark"] .cover-sub{color:#c3c0b6}
+#theme-toggle{position:fixed;right:18px;bottom:18px;z-index:99;border:1px solid var(--rule);
+  background:var(--paper);color:var(--ink);padding:9px 14px;border-radius:20px;
+  font:600 12.5px/1 -apple-system,"PingFang SC",sans-serif;letter-spacing:.06em;cursor:pointer;
+  box-shadow:0 3px 12px rgba(0,0,0,.22)}
+@media print{#theme-toggle{display:none}}
+</style>
+<script id="theme-boot">
+(function(){
+  try {
+    var saved = localStorage.getItem("textbook-theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <p class="cover-kicker">阶段五 · 复刻 swarm</p>
+  <h1 class="cover-title">把 423 行读成自己的</h1>
+  <p class="cover-sub">一个真实的开源 Agent 框架，自带测试和假模型。你写的每一行，都有测试告诉你对不对。</p>
+  <p class="cover-meta">
+    项目：openai/swarm（22k stars，OpenAI Solutions 团队的教学框架）<br>
+    核心：core.py 293 行 · types.py 42 行 · util.py 88 行<br>
+    验收：6 个官方测试，全部离线，不需要 API key
+  </p>
+</header>
+
+<nav class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#ch0">第 0 章 你现在在干什么</a></li>
+    <li><a href="#ch1">第 1 章 场地地图：哪看、哪写、哪验收</a></li>
+    <li><a href="#ch2">第 2 章 三个文件各自管什么</a></li>
+    <li><a href="#ch3">第 3 章 六关：一关一个测试</a></li>
+    <li><a href="#ch4">第 4 章 怎么读 pytest 的报错</a></li>
+    <li><a href="#ch5">第 5 章 三个必卡点</a></li>
+    <li><a href="#ch6">第 6 章 术语表与进度表</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section class="chapter" id="ch0">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 0</p>
+    <h1 class="ch-title">你现在在干什么</h1>
+    <p class="chapter-goal">一句话：不看原码，自己写出一个能通过官方测试的 Agent 框架。</p>
+  </div>
+
+  <p>前面四周你写了检索、循环刹车、评测、命令行入口——都是零散零件。现在把它们换成一套真正的工程骨架：一个别人也在用的开源框架。</p>
+
+  <div class="analogy">
+    <strong>打个比方。</strong>学做菜有两种学法：看菜谱抄一遍，或者把大厨的招牌菜端上来，先尝，再自己复现，最后和他那盘对比。<br>
+    <strong>复刻走的是第二条</strong>：测试就是那张"标准味道"的评分表，你做出来一尝就知道差在哪。
+  </div>
+
+  <h2><span class="sec-no">0.1</span>为什么是它</h2>
+  <table>
+    <tr><th>条件</th><th>swarm 的情况</th></tr>
+    <tr><td>代码量能吃下</td><td>423 行，三个文件，一天能读完</td></tr>
+    <tr><td>不要 API key</td><td>自带 <code>tests/mock_client.py</code>，模型是假的</td></tr>
+    <tr><td>有标准答案</td><td>6 个官方测试，红了就是错了</td></tr>
+    <tr><td>有真实用法</td><td>8 个示例应用：分流客服、天气助手、航空公司</td></tr>
+  </table>
+
+  <h2><span class="sec-no">0.2</span>复刻的判定标准</h2>
+  <p>不是"我读懂了"，也不是"能跑起来"。只有一条：</p>
+  <div class="note"><strong>把原仓库的 <code>swarm/core.py</code> 挪走，用你自己的实现，让 <code>pytest tests</code> 全绿。</strong>测试是 OpenAI 写的，不是为你放宽过的。</div>
+  <p>全绿之后，你手上这个东西和官方版本行为等价。这就叫复刻成功。</p>
+
+  <div class="warn"><strong>别做的事。</strong>把原码复制过来改几个变量名，或者一边看一边抄。那样测试也会绿，但你只是在打字。正确姿势：读完一块，<strong>关掉窗口</strong>，凭记忆写。</div>
+</section>
+
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 1</p>
+    <h1 class="ch-title">场地地图：哪看、哪写、哪验收</h1>
+    <p class="chapter-goal">三块地方，别混：只读的原码、你写的工作区、判分的测试。</p>
+  </div>
+
+  <table>
+    <tr><th>用途</th><th>路径</th><th>能不能改</th></tr>
+    <tr><td>原码（参考）</td><td><code>Desktop\study\projects\swarm\swarm\</code></td><td>只读</td></tr>
+    <tr><td>你写的地方</td><td><code>Desktop\study\projects\my-swarm\swarm\</code></td><td>只改这里</td></tr>
+    <tr><td>测试（判分）</td><td><code>Desktop\study\projects\my-swarm\tests\</code></td><td>不要改</td></tr>
+    <tr><td>Python 环境</td><td><code>Desktop\study\projects\swarm\.venv\</code></td><td>已装好</td></tr>
+    <tr><td>教材四本</td><td><code>Desktop\study\books\</code></td><td>只读</td></tr>
+  </table>
+
+  <h2><span class="sec-no">1.1</span>两条命令就够</h2>
+  <p>跑测试（在你写的工作区里）：</p>
+  <div class="code"><span class="label">PowerShell</span><pre>cd "$HOME\Desktop\study\projects\my-swarm"
+&amp; "..\swarm\.venv\Scripts\python.exe" -m pytest tests -q</pre></div>
+  <p>看原码的某一段（比如主循环）：</p>
+  <div class="code"><span class="label">PowerShell</span><pre>cd "$HOME\Desktop\study\projects\swarm"
+Get-Content .\swarm\core.py | Select-Object -Skip 230 -First 63</pre></div>
+
+  <h2><span class="sec-no">1.2</span>现在的状态是"红的"</h2>
+  <p>工作区刚搭好，跑测试会报：</p>
+  <div class="out"><span class="label">实际输出</span><pre>ImportError: cannot import name 'function_to_json' from 'swarm.util'</pre></div>
+  <p>这不是出错，是起点。它在告诉你第一件事：<code>util.py</code> 里需要一个叫 <code>function_to_json</code> 的函数。</p>
+
+  <div class="note"><strong>为什么先红后绿。</strong>测试驱动开发（TDD）的顺序就是：先有失败的测试，再写实现让它变绿。每一步都有明确目标，不会出现"写了半天不知道对不对"。</div>
+</section>
+
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 2</p>
+    <h1 class="ch-title">三个文件各自管什么</h1>
+    <p class="chapter-goal">先认清职责，再动手。三个文件加起来 423 行。</p>
+  </div>
+
+  <h2><span class="sec-no">2.1</span>types.py —— 三个"表格"</h2>
+  <p>42 行，只做一件事：定义三个数据类。它们不是逻辑，是"装东西的盒子"。</p>
+  <table>
+    <tr><th>类</th><th>字段</th><th>是什么</th></tr>
+    <tr><td><code>Agent</code></td><td>name / model / instructions / functions / tool_choice / parallel_tool_calls</td><td>一个"角色"：叫什么、用哪个模型、说什么话、能用哪些工具</td></tr>
+    <tr><td><code>Response</code></td><td>messages / agent / context_variables</td><td>一次运行的产物：这轮说了什么、最后由谁接待、共享变量</td></tr>
+    <tr><td><code>Result</code></td><td>value / agent / context_variables</td><td>工具函数可以返回的东西：一句话、换个人接待、或改共享变量</td></tr>
+  </table>
+  <p>它们都继承 <code>BaseModel</code>（来自 pydantic）。作用：字段有默认值、能自动校验、能转成 JSON。</p>
+
+  <h2><span class="sec-no">2.2</span>util.py —— 把函数翻译成说明书</h2>
+  <p>88 行，主力只有一个函数 <code>function_to_json(func)</code>。</p>
+  <p>模型看不懂 Python 函数，只能看 JSON 说明书。这个函数做的事：读函数的名字、docstring、参数名和类型注解，翻译成模型能读的 schema。</p>
+  <div class="out"><span class="label">翻译结果长这样</span><pre>{
+  "type": "function",
+  "function": {
+    "name": "basic_function",
+    "description": "",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "arg1": {"type": "string"},
+        "arg2": {"type": "string"}
+      },
+      "required": ["arg1", "arg2"]
+    }
+  }
+}</pre></div>
+  <p>类型映射是死的：<code>int → integer</code>、<code>str → string</code>、<code>float → number</code>、<code>bool → boolean</code>。不写注解就当 <code>string</code>。</p>
+  <p>还有 <code>debug_print</code>：调试开关打开时才打印，平时闭嘴。</p>
+
+  <h2><span class="sec-no">2.3</span>core.py —— 主循环</h2>
+  <p>293 行，六个部分：</p>
+  <table>
+    <tr><th>行</th><th>名字</th><th>干什么</th></tr>
+    <tr><td>26</td><td><code>class Swarm</code></td><td>整个框架</td></tr>
+    <tr><td>27</td><td><code>__init__</code></td><td>存一个模型客户端；不给就新建官方客户端</td></tr>
+    <tr><td>32</td><td><code>get_chat_completion</code></td><td>拼 system 指令 + 历史 + 工具说明书，发请求</td></tr>
+    <tr><td>71</td><td><code>handle_function_result</code></td><td>把工具返回值统一成 <code>Result</code></td></tr>
+    <tr><td>89</td><td><code>handle_tool_calls</code></td><td>执行模型点名的工具，把结果写成 <code>role=tool</code> 消息</td></tr>
+    <tr><td>139</td><td><code>run_and_stream</code></td><td>流式版本（先跳过）</td></tr>
+    <tr><td>231</td><td><code>run</code></td><td>主循环：问模型 → 有工具就执行 → 再问 → 直到没有工具</td></tr>
+  </table>
+
+  <h2><span class="sec-no">2.4</span>run() 的六步骨架</h2>
+  <p>这是整个框架的心脏。先看骨架，别急着写：</p>
+  <div class="code"><span class="label">伪代码（不是最终代码）</span><pre>1. 如果要求流式，转给 run_and_stream
+2. 记下起点：active_agent、history、init_len
+3. while 轮数还没超 max_turns 且还有 active_agent：
+4.     问模型要一次回答
+5.     把回答塞进 history
+6.     如果回答里没有 tool_calls，或用户说别执行工具 → 结束
+7.     执行工具，拿回 消息 / 共享变量 / 新 agent
+8.     把消息并进 history，更新变量，必要时换 active_agent
+9. 返回 Response（只返回这轮新增的消息）</pre></div>
+  <p>读的时候盯住两个细节：<code>init_len</code> 为什么要减掉；<code>active_agent</code> 为什么可以被换掉。这两处就是"多 Agent"的全部秘密。</p>
+</section>
+
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 3</p>
+    <h1 class="ch-title">六关：一关一个测试</h1>
+    <p class="chapter-goal">每关只有一个目标：让对应测试变绿。不贪多。</p>
+  </div>
+
+  <table>
+    <tr><th>关</th><th>目标</th><th>变绿的测试</th><th>改哪</th></tr>
+    <tr><td>v0.1</td><td>三个数据类写出来</td><td>import 不再报错</td><td>types.py</td></tr>
+    <tr><td>v0.2</td><td>函数 → JSON 说明书</td><td>test_basic_function、test_complex_function</td><td>util.py</td></tr>
+    <tr><td>v0.3</td><td>单轮问答能返回</td><td>test_run_with_simple_message</td><td>core.py 的 run + get_chat_completion</td></tr>
+    <tr><td>v0.4</td><td>模型要求调工具时能执行</td><td>test_tool_call</td><td>core.py 的 handle_tool_calls</td></tr>
+    <tr><td>v0.5</td><td>关闭工具执行也能正常返回</td><td>test_execute_tools_false</td><td>core.py 里 execute_tools 的判断</td></tr>
+    <tr><td>v0.6</td><td>工具返回 Agent 时换人接待</td><td>test_handoff</td><td>core.py 里 active_agent 的更新</td></tr>
+  </table>
+
+  <h2><span class="sec-no">3.1</span>v0.1 只写三个类</h2>
+  <p>这一关不写任何逻辑。照着第 2 章的字段表，在 <code>my-swarm\swarm\types.py</code> 里定义三个类，字段名、默认值都要和官方一致。</p>
+  <p>另外 <code>__init__.py</code> 要把这三个类和 <code>Swarm</code> 导出，因为测试是 <code>from swarm import Swarm, Agent</code>。</p>
+  <div class="note"><strong>验收：</strong><code>pytest tests -q</code> 的报错从 <code>ImportError</code> 变成 <code>AttributeError</code> 或 <code>ImportError: Swarm</code>。这说明 types 已经过了，轮到 core。</div>
+
+  <h2><span class="sec-no">3.2</span>v0.2 最难的是"类型映射"</h2>
+  <p>这一关有现成的标准答案——测试里写死了期望的 JSON。<code>test_basic_function</code> 要求不写注解的参数当 <code>string</code>；<code>test_complex_function</code> 要求四种类型各自对上，而且<strong>有默认值的参数不进 <code>required</code></strong>。</p>
+  <p>要用到的两样东西：<code>inspect.signature(func)</code> 拿参数表，<code>func.__doc__</code> 拿描述。</p>
+  <div class="warn"><strong>最容易忘的一条：</strong><code>required</code> 只放"没有默认值"的参数。arg3、arg4 有默认值，所以只出现 <code>arg1</code>、<code>arg2</code>。</div>
+
+  <h2><span class="sec-no">3.3</span>v0.3 只要一条消息能回来</h2>
+  <p>这个测试最简单：给一句 "Hello"，断言最后一条消息的角色是 <code>assistant</code>、内容是假模型写死的那句。</p>
+  <p>你需要让 <code>run</code> 至少做到：调一次模型 → 把回答塞进 history → 没有工具就跳出循环 → 返回 <code>Response</code>。</p>
+
+  <h2><span class="sec-no">3.4</span>v0.4 工具调用的闭环</h2>
+  <p>炮制顺序（模型视角）：</p>
+  <ol class="plain">
+    <li>模型说"我要调 <code>get_weather</code>，参数是 <code>{location: "San Francisco"}</code>"</li>
+    <li>你按名字找到函数，<code>json.loads</code> 参数，调用它</li>
+    <li>把返回值包装成一条 <code>{"role": "tool", "tool_call_id": ..., "content": ...}</code></li>
+    <li>这条消息放回 history，再问模型一次</li>
+  </ol>
+  <p>测试断言的是：工具真的被调用了一次；调用时传进去的参数是对的；最后返回的消息里既有工具结果、也有模型的最终回复。</p>
+
+  <h2><span class="sec-no">3.5</span>v0.5 和 v0.6 只差两个判断</h2>
+  <p>v0.5 是"用户说别执行工具"：<code>execute_tools=False</code> 时，即使模型给了 <code>tool_calls</code> 也不能执行，直接结束这一轮。</p>
+  <p>v0.6 是"换人接待"：工具函数返回的是一个 <code>Agent</code> 实例时，不要当字符串用，而是把它变成新的 <code>active_agent</code>，并给模型回一句 <code>{"assistant": "新角色名"}</code>。</p>
+  <div class="analogy"><strong>打个比方。</strong>客服接了你的电话，发现是退款问题，说"我帮您转接售后"——这就是 handoff。转接之后，说话的人变了，但通话没断，历史还在。</div>
+</section>
+
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 4</p>
+    <h1 class="ch-title">怎么读 pytest 的报错</h1>
+    <p class="chapter-goal">报错不是惩罚，是提示。学会读它，卡住的时间能少一半。</p>
+  </div>
+
+  <p>一段真实的失败输出，分三段看：</p>
+  <div class="out"><span class="label">失败输出（示意）</span><pre>FAILED tests/test_util.py::test_basic_function - AssertionError: assert {...} == {...}
+E       AssertionError: assert {'type': 'function', ...} == {'type': 'function', ...}
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'function': {...}} != {'function': {...}}
+========================= 1 failed, 5 passed in 0.31s ========================</pre></div>
+
+  <table>
+    <tr><th>看哪</th><th>它在说什么</th></tr>
+    <tr><td>第一行 <code>FAILED ...::test_basic_function</code></td><td>哪个测试挂了。名字就是范围，其它先不管</td></tr>
+    <tr><td>中间的 <code>E</code> 行</td><td>期望值和你给的值哪里不一样。加 <code>-vv</code> 能看到完整差异</td></tr>
+    <tr><td>最后一行 <code>1 failed, 5 passed</code></td><td>进度条。passed 从 0 涨到 6，就是你的进度</td></tr>
+  </table>
+
+  <h2><span class="sec-no">4.1</span>三种常见报错</h2>
+  <table>
+    <tr><th>报错</th><th>含义</th><th>先查什么</th></tr>
+    <tr><td><code>ImportError</code></td><td>名字没定义或没导出</td><td>函数名拼写、<code>__init__.py</code> 有没有导出</td></tr>
+    <tr><td><code>AttributeError</code></td><td>对象身上没这个属性</td><td>类字段名是不是和官方一致</td></tr>
+    <tr><td><code>AssertionError</code></td><td>跑通了，但结果不对</td><td>加 <code>-vv</code> 看完整差异，逐字段比</td></tr>
+  </table>
+
+  <div class="note"><strong>一个小技巧。</strong>先只跑一个测试：<code>pytest tests/test_util.py::test_basic_function -vv</code>。范围越小，报错越好读。</div>
+</section>
+
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 5</p>
+    <h1 class="ch-title">三个必卡点</h1>
+    <p class="chapter-goal">这三个地方，第一次写基本都会错。提前知道，能省两小时。</p>
+  </div>
+
+  <h2><span class="sec-no">5.1</span>required 列表</h2>
+  <p>直觉是"把所有参数都放进 required"，但测试要求只放没默认值的。判断方法是看 <code>param.default</code> 是不是 <code>inspect.Parameter.empty</code>。</p>
+
+  <h2><span class="sec-no">5.2</span>工具结果必须回填</h2>
+  <p>执行完工具后，如果不把结果以 <code>role="tool"</code> 的消息塞回 history，模型下一轮会以为"我还没查过"，于是再调一次——死循环。</p>
+  <p>而且每条工具消息都要带 <code>tool_call_id</code>，它对应模型那次调用的编号，模型靠它对账。</p>
+
+  <h2><span class="sec-no">5.3</span>返回值的三种类型</h2>
+  <table>
+    <tr><th>工具返回</th><th>怎么办</th></tr>
+    <tr><td>普通字符串 / 数字</td><td>转成字符串，包进 <code>Result.value</code></td></tr>
+    <tr><td><code>Result</code> 对象</td><td>直接用，它可能带了 agent 和共享变量</td></tr>
+    <tr><td><code>Agent</code> 对象</td><td>当作"转接"，换成新的 active_agent</td></tr>
+  </table>
+
+  <div class="warn"><strong>卡住超过 15 分钟就降级。</strong>第一级：看一眼原码对应函数的注释和返回类型。第二级：对照测试里的期望值反推结构。第三级：直接问我，说清"哪一行、报什么错"。</div>
+
+  <div class="quiz">
+    <p><strong>自测三问</strong>（读完这章就能答）：</p>
+    <p>1. 为什么 <code>function_to_json</code> 需要读函数的类型注解？</p>
+    <p>2. 工具执行完，为什么必须把结果写回 history？</p>
+    <p>3. handoff 之后，history 会被清空吗？</p>
+  </div>
+</section>
+
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <p class="chapter-no">Chapter 6</p>
+    <h1 class="ch-title">术语表与进度表</h1>
+    <p class="chapter-goal">手机上翻着看，把这几个词记牢就够用了。</p>
+  </div>
+
+  <table>
+    <tr><th>词</th><th>一句话</th></tr>
+    <tr><td>Agent</td><td>一个角色：名字 + 模型 + 指令 + 可用工具</td></tr>
+    <tr><td>handoff</td><td>转接：把当前接待人换成另一个 Agent，历史不断</td></tr>
+    <tr><td>tool_calls</td><td>模型说"我要调这些函数"，带名字和参数</td></tr>
+    <tr><td>schema</td><td>函数的 JSON 说明书：叫什么、收什么参数、必填哪些</td></tr>
+    <tr><td>mock</td><td>假实现。测试用假模型，不联网、不花钱</td></tr>
+    <tr><td>context_variables</td><td>一次运行内共享的小本子，所有工具都能读写</td></tr>
+    <tr><td>max_turns</td><td>最多循环几轮，防止无限调用</td></tr>
+    <tr><td>TDD</td><td>先写失败的测试，再写实现让它变绿</td></tr>
+  </table>
+
+  <h2><span class="sec-no">6.1</span>进度表（自己打勾）</h2>
+  <table>
+    <tr><th>关</th><th>目标</th><th>通过标志</th><th>完成</th></tr>
+    <tr><td>v0.1</td><td>三个数据类</td><td>不再报 ImportError</td><td>☐</td></tr>
+    <tr><td>v0.2</td><td>function_to_json</td><td>2 passed</td><td>☐</td></tr>
+    <tr><td>v0.3</td><td>单轮问答</td><td>3 passed</td><td>☐</td></tr>
+    <tr><td>v0.4</td><td>工具调用</td><td>4 passed</td><td>☐</td></tr>
+    <tr><td>v0.5</td><td>不执行工具</td><td>5 passed</td><td>☐</td></tr>
+    <tr><td>v0.6</td><td>handoff</td><td>6 passed</td><td>☐</td></tr>
+  </table>
+
+  <h2><span class="sec-no">6.2</span>全绿之后做什么</h2>
+  <ol class="plain">
+    <li>把 <code>examples/</code> 里的 <code>triage_agent</code> 用你的实现跑一遍，看分流效果。</li>
+    <li>给它加一个工具：查你自己的笔记（复用阶段三第 4 章的检索）。</li>
+    <li>包一层 HTTP 服务（复用阶段四第 0 章），做成能 <code>curl</code> 的接口。</li>
+    <li>写 README：三条命令让别人在你机器上跑起来。</li>
+  </ol>
+  <p>到这一步，你手上就是一个 1000 行左右、每一行都能讲清出处的作品。</p>
+
+  <div class="footer">阶段五手册 · 配套仓库 ExpertKT/study-archive（私有） · 原项目 github.com/openai/swarm</div>
+</section>
+
+</main>
+</div>
+<button id="theme-toggle">夜间</button>
+<script>
+(function(){
+  var btn = document.getElementById("theme-toggle");
+  var root = document.documentElement;
+  function sync(){ btn.textContent = root.dataset.theme === "dark" ? "日间" : "夜间"; }
+  btn.addEventListener("click", function(){
+    root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    try { localStorage.setItem("textbook-theme", root.dataset.theme); } catch(e) {}
+    sync();
+  });
+  sync();
+})();
+</script>
+</body>
+</html>
